@@ -71,3 +71,5 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+.idea/workspace.xml
+.idea/tasks.xml
