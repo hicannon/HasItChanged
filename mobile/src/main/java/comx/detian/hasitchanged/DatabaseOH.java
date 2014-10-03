@@ -13,7 +13,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE HSC (ID INTEGER PRIMARY KEY, URL TEXT, DATE TEXT, HASH BLOB)");
+        db.execSQL("CREATE TABLE HSC (ID INTEGER PRIMARY KEY, URL TEXT, LUDATE TEXT, UINTERVAL TEXT, HASH BLOB)");
     }
 
     @Override

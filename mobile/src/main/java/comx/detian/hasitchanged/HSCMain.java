@@ -1,5 +1,7 @@
 package comx.detian.hasitchanged;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 
 import android.app.ActionBar;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 public class HSCMain extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
+    Account mAccount;
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -41,10 +44,23 @@ public class HSCMain extends Activity
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
+        mAccount = CreateSyncAccount(this);
+
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+    }
+
+    public static Account CreateSyncAccount(Context context){
+        Account out = new Account("Dummy", "HSC.comx");
+        AccountManager am = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
+
+        if (am.addAccountExplicitly(out, null, null)){
+            return out;
+        }else{
+            return null;
+        }
     }
 
     @Override
