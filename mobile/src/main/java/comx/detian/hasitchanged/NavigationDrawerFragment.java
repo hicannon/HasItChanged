@@ -4,6 +4,7 @@ package comx.detian.hasitchanged;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.ContentResolver;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -11,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -249,6 +251,18 @@ public class NavigationDrawerFragment extends Fragment {
 
         if (item.getItemId() == R.id.action_example) {
             Toast.makeText(getActivity(), "Example action.", Toast.LENGTH_SHORT).show();
+
+            if (ContentResolver.isSyncPending(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY) ||
+                    ContentResolver.isSyncActive(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY)){
+                Log.d("SYNC: Manual", "Sync pending, cancelling");
+                ContentResolver.cancelSync(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY);
+            }
+            Bundle params = new Bundle();
+            params.putBoolean(
+                    ContentResolver.SYNC_EXTRAS_MANUAL, true);
+            params.putBoolean(
+                    ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+            ContentResolver.requestSync(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY, params);
             return true;
         }
 

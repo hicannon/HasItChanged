@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,7 +25,10 @@ import android.widget.TextView;
 public class HSCMain extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
+    protected static final String AUTHORITY = "comx.detian.hasitchanged.provider";
     Account mAccount;
+    ContentResolver mResolver;
+
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -44,7 +48,22 @@ public class HSCMain extends Activity
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
-        mAccount = CreateSyncAccount(this);
+        Account[] accounts = ((AccountManager) this.getSystemService(ACCOUNT_SERVICE)).getAccountsByType("HSC.comx");
+        if (accounts.length>=1){
+            //account already made
+            mAccount = accounts[0];
+            assert(accounts.length==1);
+        }else if (accounts.length==0){
+            mAccount = CreateSyncAccount(this);
+        }
+
+        mResolver = getContentResolver();
+
+        ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
+
+        Bundle params = new Bundle();
+
+        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, params, 120);
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(

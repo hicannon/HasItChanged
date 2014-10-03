@@ -12,14 +12,13 @@ public class HSCExplorerService extends Service {
     public HSCExplorerService() {
         synchronized (mSALock) {
             if (mSA == null) {
-                mSA = new HSCSyncAdapter(getApplicationContext(), false);
+                mSA = new HSCSyncAdapter(this, false);
             }
         }
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
         return mSA.getSyncAdapterBinder();
     }
 }
