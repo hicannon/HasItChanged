@@ -10,15 +10,16 @@ public class HSCExplorerService extends Service {
     private static final Object mSALock = new Object();
 
     public HSCExplorerService() {
-        synchronized (mSALock) {
-            if (mSA == null) {
-                mSA = new HSCSyncAdapter(this, false);
-            }
-        }
+
     }
 
     @Override
     public IBinder onBind(Intent intent) {
+        synchronized (mSALock) {
+            if (mSA == null) {
+                mSA = new HSCSyncAdapter(getApplicationContext(), false);
+            }
+        }
         return mSA.getSyncAdapterBinder();
     }
 }

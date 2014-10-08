@@ -2,6 +2,7 @@ package comx.detian.hasitchanged;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -14,17 +15,22 @@ public class HSCProvider extends ContentProvider{
 
     private SQLiteDatabase db;
 
+    /*private static final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+    static{
+        mUriMatcher.addURI("comx.detian.hasitchanged.HSCProvider", );
+    }*/
+
     @Override
     public boolean onCreate() {
         sqloh = new DatabaseOH(getContext());
+
         return true;
     }
 
     @Override
-    public Cursor query(Uri uri, String[] strings, String s, String[] strings2, String s2) {
-        //sqloh.getReadableDatabase().query()
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Log.d("PROVIDER: query", uri.toString());
-        return null;
+        return sqloh.getReadableDatabase().query("HSC", projection, selection, selectionArgs, null, null, sortOrder);
     }
 
     @Override
@@ -34,16 +40,19 @@ public class HSCProvider extends ContentProvider{
 
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
+        sqloh.getWritableDatabase().insert("HSC", null, contentValues);
         return null;
     }
 
     @Override
-    public int delete(Uri uri, String s, String[] strings) {
-        return 0;
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        Log.d("PROVIDER: delete", uri.toString());
+        return sqloh.getWritableDatabase().delete("HSC", selection, selectionArgs);
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+        Log.d("PROVIDER: update", uri.toString());
+        return sqloh.getWritableDatabase().update("HSC", contentValues, selection, selectionArgs);
     }
 }

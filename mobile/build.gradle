@@ -24,4 +24,5 @@ dependencies {
     wearApp project(':wear')
     compile 'com.google.android.gms:play-services-wearable:+'
     compile 'com.android.support:support-v4:20.0.0'
+    compile 'com.mcxiaoke.volley:library:1.0.6'
 }

@@ -21,11 +21,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+
 
 public class HSCMain extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     protected static final String AUTHORITY = "comx.detian.hasitchanged.provider";
+    static final SimpleDateFormat df = new SimpleDateFormat("dd/MMM/yyyy");
     Account mAccount;
     ContentResolver mResolver;
 
@@ -63,7 +66,7 @@ public class HSCMain extends Activity
 
         Bundle params = new Bundle();
 
-        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, params, 120);
+        //ContentResolver.addPeriodicSync(mAccount, AUTHORITY, params, 120);
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
