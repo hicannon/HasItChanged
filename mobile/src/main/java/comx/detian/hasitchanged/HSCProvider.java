@@ -42,7 +42,7 @@ public class HSCProvider extends ContentProvider{
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
         long id = sqloh.getWritableDatabase().insert("HSC", null, contentValues);
-        return ContentUris.withAppendedId(DatabaseOH.baseURI, id);
+        return ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id);
     }
 
     @Override

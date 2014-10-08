@@ -70,7 +70,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         //sendBroadcast(i);
 
         try {
-            Cursor cursor = contentProviderClient.query(DatabaseOH.baseURI, null, null, null, null);
+            Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
             Log.d("SyncAdapter: onPerform", "Iterating....");
             while (cursor.moveToNext()){
                 final long id = cursor.getLong(0);
@@ -99,7 +99,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     updateValues.put("LUDATE", HSCMain.df.format(Calendar.getInstance().getTime()));
                     updateValues.put("HASH", hashCode);
                     try {
-                        contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.baseURI, id), updateValues, "ID=?", new String[]{""+id});
+                        contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "ID=?", new String[]{""+id});
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }

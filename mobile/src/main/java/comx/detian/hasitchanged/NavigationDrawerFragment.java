@@ -249,8 +249,8 @@ public class NavigationDrawerFragment extends Fragment {
             return true;
         }
 
-        if (item.getItemId() == R.id.action_example) {
-            Toast.makeText(getActivity(), "Example action.", Toast.LENGTH_SHORT).show();
+        if (item.getItemId() == R.id.manual_sync) {
+            Toast.makeText(getActivity(), "Checking for Changes", Toast.LENGTH_SHORT).show();
 
             if (ContentResolver.isSyncPending(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY) ||
                     ContentResolver.isSyncActive(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY)){

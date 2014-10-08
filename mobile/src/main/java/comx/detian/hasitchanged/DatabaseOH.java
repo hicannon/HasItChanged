@@ -10,14 +10,19 @@ import java.util.Calendar;
 
 public class DatabaseOH extends SQLiteOpenHelper {
     private static final String DBNAME = "HSCdb";
-    public static Uri baseURI;
+    private static Uri baseURI;
 
     public DatabaseOH(Context context) {
         super(context, DBNAME, null, 5);
+    }
 
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("content").authority(HSCMain.AUTHORITY);
-        baseURI = builder.build();
+    public static Uri getBaseURI(){
+        if (baseURI==null){
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("content").authority(HSCMain.AUTHORITY);
+            baseURI = builder.build();
+        }
+        return baseURI;
     }
 
     /**
