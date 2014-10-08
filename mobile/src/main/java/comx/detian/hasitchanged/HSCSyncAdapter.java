@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -68,10 +69,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         //Intent i = new Intent(SYNC_FINISHED);
         //sendBroadcast(i);
 
-
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("content").authority(HSCMain.AUTHORITY);
-        final Uri baseURI = builder.build();
         try {
             Cursor cursor = contentProviderClient.query(baseURI, null, null, null, null);
             Log.d("SyncAdapter: onPerform", "Iterating....");
@@ -102,7 +99,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     updateValues.put("LUDATE", HSCMain.df.format(Calendar.getInstance().getTime()));
                     updateValues.put("HASH", hashCode);
                     try {
-                        contentProviderClient.update(ContentUris.withAppendedId(baseURI, id), updateValues, "ID=?", new String[]{""+id});
+                        contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.baseURI, id), updateValues, "ID=?", new String[]{""+id});
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }

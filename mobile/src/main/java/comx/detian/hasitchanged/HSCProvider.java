@@ -1,6 +1,7 @@
 package comx.detian.hasitchanged;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -40,8 +41,8 @@ public class HSCProvider extends ContentProvider{
 
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        sqloh.getWritableDatabase().insert("HSC", null, contentValues);
-        return null;
+        long id = sqloh.getWritableDatabase().insert("HSC", null, contentValues);
+        return ContentUris.withAppendedId(DatabaseOH.baseURI, id);
     }
 
     @Override

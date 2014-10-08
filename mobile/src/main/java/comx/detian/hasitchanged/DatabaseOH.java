@@ -3,15 +3,21 @@ package comx.detian.hasitchanged;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.util.Log;
 
 import java.util.Calendar;
 
 public class DatabaseOH extends SQLiteOpenHelper {
     private static final String DBNAME = "HSCdb";
+    public static Uri baseURI;
 
     public DatabaseOH(Context context) {
         super(context, DBNAME, null, 5);
+
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("content").authority(HSCMain.AUTHORITY);
+        baseURI = builder.build();
     }
 
     /**
