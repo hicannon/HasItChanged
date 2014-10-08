@@ -42,7 +42,7 @@ import java.util.Objects;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     //ContentResolver mCR;
-    RequestQueue queue;
+    //RequestQueue queue;
 
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
@@ -53,7 +53,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             Log.d("SyncAdapter: Constructor", "Context is null");*/
 
         //Log.d("SyncAdapter: Constructor", context.toString());
-        queue = Volley.newRequestQueue(context);
+        //queue = Volley.newRequestQueue(context);
     }
 
     public HSCSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs){
@@ -70,7 +70,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         //sendBroadcast(i);
 
         try {
-            Cursor cursor = contentProviderClient.query(baseURI, null, null, null, null);
+            Cursor cursor = contentProviderClient.query(DatabaseOH.baseURI, null, null, null, null);
             Log.d("SyncAdapter: onPerform", "Iterating....");
             while (cursor.moveToNext()){
                 final long id = cursor.getLong(0);
