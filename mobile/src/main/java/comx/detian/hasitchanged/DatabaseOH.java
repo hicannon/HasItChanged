@@ -13,7 +13,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
     private static Uri baseURI;
 
     public DatabaseOH(Context context) {
-        super(context, DBNAME, null, 5);
+        super(context, DBNAME, null, 8);
     }
 
     public static Uri getBaseURI(){
@@ -31,7 +31,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE HSC (ID INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, PROTOCOL TEXT, LUDATE TEXT, HASH INTEGER, CONTENT BLOB, DATA BLOB)");
+        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, PROTOCOL TEXT, LUDATE TEXT, HASH INTEGER, FAVICON BLOB, CONTENT BLOB, DATA BLOB)");
 
         db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE) VALUES ('google.com' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");
         db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE) VALUES ('xkcd.com' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");

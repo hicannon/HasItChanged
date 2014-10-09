@@ -4,7 +4,10 @@ package comx.detian.hasitchanged;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.app.ListFragment;
 import android.content.ContentResolver;
+import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -21,7 +24,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -29,7 +36,7 @@ import android.widget.Toast;
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends Fragment {
+public class NavigationDrawerFragment extends ListFragment {
 
     /**
      * Remember the position of the selected item.
@@ -60,6 +67,8 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
+    SimpleCursorAdapter mAdapter;
+
     public NavigationDrawerFragment() {
     }
 
@@ -86,6 +95,8 @@ public class NavigationDrawerFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
+
+        //setEmptyText("Not Watching Any");
     }
 
     @Override
@@ -99,7 +110,30 @@ public class NavigationDrawerFragment extends Fragment {
                 selectItem(position);
             }
         });
-        mDrawerListView.setAdapter(new ArrayAdapter<String>(
+        mAdapter = new SimpleCursorAdapter(getActionBar().getThemedContext(),
+                R.layout.list_item_icon_text,
+                getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), new String[]{"_id", "URL", "FAVICON"}, null, null, null),
+                new String[]{"URL", "FAVICON"},
+                new int[]{R.id.siteURL, R.id.siteIcon});
+
+        SimpleCursorAdapter.ViewBinder viewBinder = new SimpleCursorAdapter.ViewBinder(){
+
+            @Override
+            public boolean setViewValue(View view, Cursor c, int cIndex) {
+                if (view instanceof ImageView){
+                    ImageView imageView = (ImageView) view;
+                    byte[] raw = c.getBlob(cIndex);
+                    imageView.setImageBitmap(BitmapFactory.decodeByteArray(raw, 0, raw.length));
+                    return true;
+                }else{
+                    TextView textView = (TextView) view;
+                    textView.setText(c.getString(cIndex));
+                    return true;
+                }
+            }
+        };
+        mAdapter.setViewBinder(viewBinder);
+        /*mDrawerListView.setAdapter(new ArrayAdapter<String>(
                 getActionBar().getThemedContext(),
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
@@ -107,7 +141,8 @@ public class NavigationDrawerFragment extends Fragment {
                         getString(R.string.title_section1),
                         getString(R.string.title_section2),
                         getString(R.string.title_section3),
-                }));
+                }));*/
+        mDrawerListView.setAdapter(mAdapter);
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
     }

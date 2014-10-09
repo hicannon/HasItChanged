@@ -30,8 +30,9 @@ public class HSCProvider extends ContentProvider{
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        Log.d("PROVIDER: query", uri.toString());
-        return sqloh.getReadableDatabase().query("HSC", projection, selection, selectionArgs, null, null, sortOrder);
+        Cursor out = sqloh.getReadableDatabase().query("HSC", projection, selection, selectionArgs, null, null, sortOrder);
+        Log.d("PROVIDER: query has "+out.getCount(), uri.toString());
+        return out;
     }
 
     @Override

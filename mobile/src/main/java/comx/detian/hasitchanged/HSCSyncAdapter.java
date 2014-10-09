@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -44,6 +45,10 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     //ContentResolver mCR;
     //RequestQueue queue;
 
+    enum DesiredType{
+        STRING, IMAGE, RAW
+    }
+
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
 
@@ -65,7 +70,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle bundle, String s, final ContentProviderClient contentProviderClient, SyncResult syncResult) {
         //TODO
-        Log.d("Sync: onPerform", "called");
+        //Log.d("Sync: onPerform", "called");
         //Intent i = new Intent(SYNC_FINISHED);
         //sendBroadcast(i);
 
@@ -91,15 +96,17 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 });
                 //queue.add(request);*/
-                String data = downloadUrl(url, 15000, 10000, "GET");
+                String data = (String) downloadUrl(url, 15000, 10000, "GET", DesiredType.STRING);
                 int hashCode = data.hashCode();
                 if (lastHash != hashCode){
                     createNotification(url, "Has changed.");
                     ContentValues updateValues = new ContentValues();
                     updateValues.put("LUDATE", HSCMain.df.format(Calendar.getInstance().getTime()));
                     updateValues.put("HASH", hashCode);
+                    //TODO don't update FAVICON every time
+                    updateValues.put("FAVICON", (byte[]) downloadUrl("http://www.google.com/s2/favicons?domain="+cursor.getString(1), 15000, 10000, "GET", DesiredType.RAW));
                     try {
-                        contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "ID=?", new String[]{""+id});
+                        contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{""+id});
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -117,12 +124,12 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     // Given a URL, establishes an HttpUrlConnection and retrieves
     // the web page content as a InputStream, which it returns as
     // a string.
-    private static String downloadUrl(String myurl, int readTimeout, int connectTimeout, String method) {
+    private static Object downloadUrl(String myurl, int readTimeout, int connectTimeout, String method, DesiredType type) {
         InputStream is = null;
         // Only display the first 500 characters of the retrieved
         // web page content.
         int len = 500;
-        String contentAsString = "";
+        Object out = null;
         try {
             URL url = new URL(myurl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -135,10 +142,22 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             int response = conn.getResponseCode();
             Log.d("DownloadURL", "The response is: " + response);
             is = conn.getInputStream();
+            Log.d("DownloadURL", "The size is: " + conn.getContentLength());
 
+            switch(type){
+                case STRING:
+                    out = convertStreamToString(is);
+                    break;
+                case RAW:
+                    out = new byte[conn.getContentLength()];
+                    is.read((byte[])out);
+                    break;
+                default:
+                    break;
+            }
             // Convert the InputStream into a string
             //contentAsString = readIt(is, len);
-            contentAsString = convertStreamToString(is);
+            //contentAsString = convertStreamToString(is);
 
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
@@ -159,7 +178,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 }
             }
         }
-        return contentAsString;
+        return out;
     }
 
     // Reads an InputStream and converts it to a String.
