@@ -32,6 +32,14 @@ public class HSCMain extends Activity
     Account mAccount;
     ContentResolver mResolver;
 
+    public static enum METHOD{
+        SYNC, ALARM
+    }
+
+    public static enum TYPE{
+        REPEATING, TIME
+    }
+
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */

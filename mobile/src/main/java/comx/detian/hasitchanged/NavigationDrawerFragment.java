@@ -36,7 +36,7 @@ import android.widget.Toast;
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends ListFragment {
+public class NavigationDrawerFragment extends Fragment {
 
     /**
      * Remember the position of the selected item.
@@ -123,12 +123,13 @@ public class NavigationDrawerFragment extends ListFragment {
                 if (view instanceof ImageView){
                     ImageView imageView = (ImageView) view;
                     byte[] raw = c.getBlob(cIndex);
-                    imageView.setImageBitmap(BitmapFactory.decodeByteArray(raw, 0, raw.length));
+                    if (raw!=null)
+                        imageView.setImageBitmap(BitmapFactory.decodeByteArray(raw, 0, raw.length));
                     return true;
                 }else{
-                    TextView textView = (TextView) view;
-                    textView.setText(c.getString(cIndex));
-                    return true;
+                    //TextView textView = (TextView) view;
+                    //textView.setText(c.getString(cIndex));
+                    return false;
                 }
             }
         };
@@ -298,6 +299,7 @@ public class NavigationDrawerFragment extends ListFragment {
             params.putBoolean(
                     ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
             ContentResolver.requestSync(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY, params);
+            //TODO refresh cursor so that GUI updates
             return true;
         }
 

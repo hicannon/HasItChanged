@@ -38,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Calendar;
 import java.util.Objects;
 
@@ -78,10 +79,14 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
             Log.d("SyncAdapter: onPerform", "Iterating....");
             while (cursor.moveToNext()){
-                final long id = cursor.getLong(0);
-                final String url = cursor.getString(2) +"://"+cursor.getString(1);
-                final int lastHash = cursor.getInt(4);
-                Log.d("SyncAdapter: onPerform", cursor.getInt(0) + url + cursor.getString(3));
+                long id = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
+                String url = cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()) +"://"+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
+                if (cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()).equals("ftp")){
+                    //TODO check if actually directory, maybe use trailing slash
+                    url+="type=d";
+                }
+                int lastHash = cursor.getInt(DatabaseOH.COLUMNS.HASH.ordinal());
+                //Log.d("SyncAdapter: onPerform", cursor.getInt(0) + url + cursor.getString(3));
                 /*final HSCRequest request = new HSCRequest(Request.Method.GET, url, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -99,12 +104,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 String data = (String) downloadUrl(url, 15000, 10000, "GET", DesiredType.STRING);
                 int hashCode = data.hashCode();
                 if (lastHash != hashCode){
-                    createNotification(url, "Has changed.");
+                    createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
                     ContentValues updateValues = new ContentValues();
                     updateValues.put("LUDATE", HSCMain.df.format(Calendar.getInstance().getTime()));
                     updateValues.put("HASH", hashCode);
                     //TODO don't update FAVICON every time
-                    updateValues.put("FAVICON", (byte[]) downloadUrl("http://www.google.com/s2/favicons?domain="+cursor.getString(1), 15000, 10000, "GET", DesiredType.RAW));
+                    updateValues.put("FAVICON", (byte[]) downloadUrl("http://www.google.com/s2/favicons?domain="+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal()), 15000, 10000, "GET", DesiredType.RAW));
+                    //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
                     try {
                         contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{""+id});
                     } catch (RemoteException e) {
@@ -132,15 +138,20 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         Object out = null;
         try {
             URL url = new URL(myurl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            URLConnection conn = (URLConnection) url.openConnection();
             conn.setReadTimeout(readTimeout /* milliseconds */);
             conn.setConnectTimeout(connectTimeout /* milliseconds */);
-            conn.setRequestMethod(method);
+            if (conn instanceof HttpURLConnection)
+                ((HttpURLConnection)conn).setRequestMethod(method);
             conn.setDoInput(true);
             // Starts the query
             conn.connect();
-            int response = conn.getResponseCode();
-            Log.d("DownloadURL", "The response is: " + response);
+
+            if (conn instanceof HttpURLConnection) {
+                int response = ((HttpURLConnection)conn).getResponseCode();
+                Log.d("DownloadURL", "The response is: " + response);
+            }
+
             is = conn.getInputStream();
             Log.d("DownloadURL", "The size is: " + conn.getContentLength());
 
@@ -195,11 +206,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         return s.hasNext() ? s.next() : "";
     }
 
-    private void createNotification(String title, String content) {
+    private void createNotification(String title, String content, byte[] icon) {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this.getContext())
                 .setContentTitle(title)
                 .setContentText(content)
                 .setSmallIcon(R.drawable.ic_launcher);
+        if (icon!=null)
+                mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
 
         Intent intent = new Intent(this.getContext(), HSCMain.class);
 

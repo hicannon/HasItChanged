@@ -13,7 +13,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
     private static Uri baseURI;
 
     public DatabaseOH(Context context) {
-        super(context, DBNAME, null, 8);
+        super(context, DBNAME, null, 11);
     }
 
     public static Uri getBaseURI(){
@@ -26,14 +26,18 @@ public class DatabaseOH extends SQLiteOpenHelper {
     }
 
     /**
-     * 0    1       2           3           4           5               6
-     * ID   URL     PROTOCOL    LUDATE      HASH     CONTENT        DATA
+     * 0    1       2           3           4           5               6           7
+     * ID   URL     PROTOCOL    LUDATE      HASH     FAVICON        CONTENT        METHOD
      */
+    public static enum COLUMNS{
+        _id, URL, PROTOCOL, LUDATE, HASH, FAVICON, CONTENT, METHOD, TYPE, TIMEFRAME, EXACT, DATA
+    }
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, PROTOCOL TEXT, LUDATE TEXT, HASH INTEGER, FAVICON BLOB, CONTENT BLOB, DATA BLOB)");
+        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, PROTOCOL TEXT," +
+                "LUDATE TEXT, HASH INTEGER, FAVICON BLOB, CONTENT BLOB, METHOD INTEGER, TYPE INTEGER, TIMEFRAME INTEGER, EXACT INTEGER, DATA BLOB)");
 
-        db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE) VALUES ('google.com' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");
+        db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE, METHOD, TYPE) VALUES ('dd-wrt.com/site/index' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"', '"+ HSCMain.METHOD.SYNC.ordinal()+"' , '"+ HSCMain.TYPE.REPEATING.ordinal() + "')");
         db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE) VALUES ('xkcd.com' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");
     }
 
