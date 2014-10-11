@@ -1,6 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".HSCMain" >
+    <item android:id="@+id/add_site"
+        android:title="Add URL"
+        android:showAsAction="always" />
+    <item android:id="@+id/delete_site"
+        android:title="Delete"
+        android:showAsAction="withText|ifRoom" />
     <item android:id="@+id/manual_sync"
         android:title="@string/sync_action"
         android:showAsAction="withText|ifRoom" />

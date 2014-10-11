@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="protocols">
+        <item name="http">HTTP</item>
+        <item name="https">HTTPS</item>
+        <item name="ftp">FTP</item>
+        <item name="file">File</item>
+    </string-array>
+
+    <string-array name="protocolValues">
+        <item name="http">http</item>
+        <item name="https">https</item>
+        <item name="ftp">ftp</item>
+        <item name="file">file</item>
+    </string-array>
+    <string-array name="syncMethods">
+        <item name="sync">Sync Adapter</item>
+        <item name="alarm">Alarm</item>
+    </string-array>
+    <string-array name="syncMethodValues">
+        <item name="sync">sync</item>
+        <item name="alarm">alarm</item>
+    </string-array>
+</resources>

@@ -10,12 +10,14 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -78,10 +80,20 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
             Log.d("SyncAdapter: onPerform", "Iterating....");
+
+            //Skip first dummy
+            cursor.moveToNext();
+
             while (cursor.moveToNext()){
                 long id = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
-                String url = cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()) +"://"+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
-                if (cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()).equals("ftp")){
+                Log.d("SyncAdapter: onPerform", "Loading " + HSCMain.PREFERENCE_PREFIX + id);
+                SharedPreferences sitePreference = getContext().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+id, Context.MODE_MULTI_PROCESS);
+                String url = sitePreference.getString("pref_site_protocol", "http") + "://" +sitePreference.getString("pref_site_url", null);
+                //String url = cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()) +"://"+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
+                if (url==null || url.trim().length()==0){
+                    continue;
+                }
+                if (sitePreference.getString("pref_site_protocol", null).equals("ftp")){
                     //TODO check if actually directory, maybe use trailing slash
                     url+="type=d";
                 }
@@ -102,6 +114,10 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 });
                 //queue.add(request);*/
                 String data = (String) downloadUrl(url, 15000, 10000, "GET", DesiredType.STRING);
+                if (data==null){
+                    //TODO log/handle this error
+                    continue;
+                }
                 int hashCode = data.hashCode();
                 if (lastHash != hashCode){
                     createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
@@ -109,7 +125,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     updateValues.put("LUDATE", HSCMain.df.format(Calendar.getInstance().getTime()));
                     updateValues.put("HASH", hashCode);
                     //TODO don't update FAVICON every time
-                    updateValues.put("FAVICON", (byte[]) downloadUrl("http://www.google.com/s2/favicons?domain="+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal()), 15000, 10000, "GET", DesiredType.RAW));
+                    updateValues.put("FAVICON", (byte[]) downloadUrl("http://www.google.com/s2/favicons?domain="+sitePreference.getString("pref_site_url", null), 15000, 10000, "GET", DesiredType.RAW));
                     //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
                     try {
                         contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{""+id});
@@ -160,8 +176,12 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     out = convertStreamToString(is);
                     break;
                 case RAW:
-                    out = new byte[conn.getContentLength()];
-                    is.read((byte[])out);
+                    if (conn.getContentLength()>0) {
+                        out = new byte[conn.getContentLength()];
+                        is.read((byte[]) out);
+                    }else{
+                        out = null;
+                    }
                     break;
                 default:
                     break;

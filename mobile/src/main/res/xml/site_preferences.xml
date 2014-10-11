@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<EditTextPreference
+    android:key="pref_site_url"
+    android:inputType="textNoSuggestions"
+    android:title="URL"
+    android:summary="EX: google.com"
+    android:defaultValue=""/>
+
+<ListPreference
+    android:key="pref_site_protocol"
+    android:entries="@array/protocols"
+    android:entryValues="@array/protocolValues"
+    android:summary="The protocol to use, such as http."
+    android:title="Protocol"
+    android:defaultValue="http"/>
+
+<ListPreference
+    android:key="pref_site_sync_method"
+    android:entries="@array/syncMethods"
+    android:entryValues="@array/syncMethodValues"
+    android:summary="The method used to initiate sync"
+    android:title="Sync Method"
+    android:defaultValue="sync" />
+
+</PreferenceScreen>
