@@ -6,14 +6,19 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import java.util.Date;
+import java.util.LinkedHashMap;
 
 public class DatabaseOH extends SQLiteOpenHelper {
+    public static final Type historyType = new TypeToken<LinkedHashMap<Long, String>>(){}.getType();
     private static final String DBNAME = "HSCdb";
     private static Uri baseURI;
 
     public DatabaseOH(Context context) {
-        super(context, DBNAME, null, 20);
+        super(context, DBNAME, null, 1);
     }
 
     public static Uri getBaseURI(){

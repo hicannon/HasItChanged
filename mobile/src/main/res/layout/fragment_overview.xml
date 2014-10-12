@@ -5,9 +5,15 @@
     tools:context="comx.detian.hasitchanged.OverviewFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <ListView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/history"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:choiceMode="none"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="2dp"
+        android:background="@android:color/white"
+        tools:context=".OverviewFragment" />
 
 </FrameLayout>

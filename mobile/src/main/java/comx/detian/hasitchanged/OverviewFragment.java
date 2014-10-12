@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.ListView;
 
 
 /**
@@ -28,6 +28,8 @@ public class OverviewFragment extends Fragment {
     // TODO: Rename and change types of parameters
 
     //private OnFragmentInteractionListener mListener;
+
+    private ListView historyView;
 
     /**
      * Use this factory method to create a new instance of
@@ -59,7 +61,10 @@ public class OverviewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_overview, container, false);
+        View out =  inflater.inflate(R.layout.fragment_overview, container, false);
+        historyView = (ListView) out.findViewById(R.id.history);
+        historyView.setAdapter(new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null)));
+        return out;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

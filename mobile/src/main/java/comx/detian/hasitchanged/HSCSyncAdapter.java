@@ -23,7 +23,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -31,7 +30,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -39,12 +37,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     Gson gson;
-    Type historyType;
+
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
 
@@ -59,7 +56,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void initialize(){
         gson= new GsonBuilder().create();
-        historyType = new TypeToken<LinkedHashMap<Long, String>>(){}.getType();
     }
 
     @Override
@@ -113,7 +109,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 int readTimeout = Integer.parseInt(sitePreference.getString("pref_site_read_timeout", "15000"));
                 int connectTimeout = Integer.parseInt(sitePreference.getString("pref_site_connection_timeout", "10000"));
 
-                SiteResponse response = downloadUrl(url, connectTimeout, readTimeout, "GET",ldate, eTag);
+                SiteResponse response = downloadUrl(url, connectTimeout, readTimeout, "GET", ldate, eTag);
 
                 ContentValues updateValues = new ContentValues();
                 LinkedHashMap<Long, String> history;
@@ -122,12 +118,8 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 if (historyRaw==null || historyRaw.length()==0){
                     history = new LinkedHashMap<Long, String>();
                 }else{
-                    history = gson.fromJson(historyRaw, historyType);
+                    history = gson.fromJson(historyRaw, DatabaseOH.historyType);
                 }
-
-                history.put(System.currentTimeMillis(), response.responseCode + "");
-
-                updateValues.put("HISTORY", gson.toJson(history));
 
                 if (response.responseCode==200) {
                     if (response.payload == null) {
@@ -138,7 +130,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     String data = new String(response.payload);
                     int hashCode = data.hashCode();
 
-                    if (response.responseCode != 304 && lastHash != hashCode) {
+                    if (lastHash != hashCode) {
                         createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
 
                         updateValues.put("LUDATE", HSCMain.df.format(new Date()) + " GMT");
@@ -148,9 +140,16 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                         if (sitePreference.getBoolean("pref_site_download_favicon", false))
                             updateValues.put("FAVICON", downloadUrl("http://www.google.com/s2/favicons?domain=" + sitePreference.getString("pref_site_url", null), connectTimeout, readTimeout, "GET", ldate, null).payload);
                         //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
+                        history.put(System.currentTimeMillis(), "C"+response.responseCode);
+                    }else{
+                        history.put(System.currentTimeMillis(), "S"+response.responseCode);
                     }
                     Log.d("SyncAdapter: " + url, "Changed? Hash is " + hashCode + " vs " + lastHash);
+                }else{
+                    history.put(System.currentTimeMillis(), "O"+response.responseCode);
                 }
+
+                updateValues.put("HISTORY", gson.toJson(history));
 
                 try {
                     contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{"" + id});
@@ -180,13 +179,14 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             //Don't rely on content length and re-enable gzip compression (maybe use AndroidHTTPClient
             //conn.setRequestProperty("Accept-Encoding", "identity");
 
+            //conn.setRequestProperty("User-Agent","Mozilla/5.0 Gecko Firefox");
             conn.setReadTimeout(readTimeout /* milliseconds */);
             conn.setConnectTimeout(connectTimeout /* milliseconds */);
             if (conn instanceof HttpURLConnection) {
                 ((HttpURLConnection) conn).setRequestMethod(method);
                 if (fromDate!=null) {
                     HSCMain.df.setTimeZone(TimeZone.getTimeZone("GMT"));
-                    Log.d("DownloadURL", fromDate + HSCMain.df.format(new Date()));
+                    Log.d("SyncAdapter: DownloadURL", fromDate + HSCMain.df.format(new Date()));
                     conn.setRequestProperty("If-Modified-Since", fromDate);
                     if (eTag!=null && eTag.length()!=0)
                         conn.setRequestProperty("If-None-Match", eTag);
@@ -202,20 +202,20 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             if (conn instanceof HttpURLConnection) {
                 int response = ((HttpURLConnection)conn).getResponseCode();
                 String eTagNew = conn.getHeaderField("ETag");
-                Log.d("DownloadURL", "The response code is: " + response + " " + eTagNew);
+                Log.d("SyncAdapter: DownloadURL", "The response code is: " + response + " " + eTagNew);
                 out.responseCode = response;
                 out.eTag = eTag;
             }
 
             is = conn.getInputStream();
-            Log.d("DownloadURL", "The Content-Length is: " + conn.getContentLength());
+            Log.d("SyncAdapter: DownloadURL", "The Content-Length is: " + conn.getContentLength());
 
             if (conn.getContentLength()>0) {
                 out.payload = new byte[conn.getContentLength()];
                 is.read(out.payload);
             }else{
                 out.payload = readFully(is);
-                Log.d("DownloadURL:", "Read " + out.payload.length);
+                Log.d("SyncAdapter: DownloadURL:", "Read " + out.payload.length);
             }
 
             // Makes sure that the InputStream is closed after the app is
@@ -249,10 +249,12 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         BufferedOutputStream bout = new BufferedOutputStream(out);
         BufferedInputStream bis = new BufferedInputStream(is);
-        int data = -1;
+        int data = 0;
         while ((data = bis.read())!=-1){
             bout.write(data);
         }
+        bout.close();
+        bis.close();
         return out.toByteArray();
     }
 
