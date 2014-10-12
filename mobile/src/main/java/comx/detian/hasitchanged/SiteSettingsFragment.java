@@ -4,11 +4,9 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.TextView;
 
 
 public class SiteSettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {

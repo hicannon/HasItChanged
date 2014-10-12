@@ -40,6 +40,39 @@
         android:defaultValue=""/>
 
     <CheckBoxPreference
+        android:key="pref_site_download_favicon"
+        android:defaultValue="true"
+        android:title="Download Favicon"
+        android:summary="Download and display the favicon." />
+
+    <CheckBoxPreference
+        android:key="pref_site_wifi_only"
+        android:defaultValue="false"
+        android:title="Wifi ONLY"
+        android:summary="Only check this site if connected to Wifi." />
+
+    <EditTextPreference
+        android:key="pref_site_connection_timeout"
+        android:inputType="number"
+        android:title="Connection Timeout"
+        android:summary="Amount of time in milliseconds to wait before giving up connecting."
+        android:defaultValue="10000"/>
+
+    <EditTextPreference
+        android:key="pref_site_read_timeout"
+        android:inputType="number"
+        android:title="Read Timeout"
+        android:summary="Amount of time in milliseconds to wait before giving up on downloading content."
+        android:defaultValue="15000"/>
+
+    <EditTextPreference
+        android:key="pref_site_timeout_notify"
+        android:inputType="numberSigned"
+        android:title="Notify on timeout error"
+        android:summary="Number of consecutive failure due to timeout before notifying. (0 for every time, -1 for never)"
+        android:defaultValue="0"/>
+
+    <CheckBoxPreference
         android:key="pref_site_allow_server_not_modified"
         android:defaultValue="true"
         android:title="Use Cache Technologies"

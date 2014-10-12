@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,54 +13,68 @@ import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
+    Gson gson;
+    Type historyType;
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
+
+        initialize();
     }
 
     public HSCSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs){
         super(context, autoInitialize, allowParallelSyncs);
+
+        initialize();
+    }
+
+    private void initialize(){
+        gson= new GsonBuilder().create();
+        historyType = new TypeToken<LinkedHashMap<Long, String>>(){}.getType();
     }
 
     @Override
     public void onPerformSync(Account account, Bundle bundle, String s, final ContentProviderClient contentProviderClient, SyncResult syncResult) {
         //TODO
         //Log.d("Sync: onPerform", "called");
+
+        ConnectivityManager cm =
+                (ConnectivityManager)getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (activeNetwork==null || !activeNetwork.isConnectedOrConnecting()){
+            Log.d("SyncAdapter: onPerform", "No active network");
+            return;
+        }
 
         try {
             Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
@@ -72,8 +85,14 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
             while (cursor.moveToNext()){
                 long id = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
-                Log.d("SyncAdapter: onPerform", "Loading " + HSCMain.PREFERENCE_PREFIX + id);
+                Log.d("SyncAdapter: onPerform", "Loading preference " + HSCMain.PREFERENCE_PREFIX + id);
                 SharedPreferences sitePreference = getContext().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+id, Context.MODE_MULTI_PROCESS);
+
+                if (sitePreference.getBoolean("pref_site_wifi_only", false) && activeNetwork.getType() != ConnectivityManager.TYPE_WIFI){
+                    Log.d("SyncAdapter: onPerform", "Skipping due to not on wifi");
+                    continue;
+                }
+
                 String url = sitePreference.getString("pref_site_protocol", "http") + "://" +sitePreference.getString("pref_site_url", null);
                 //String url = cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()) +"://"+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
                 if (url==null || url.trim().length()==0){
@@ -91,31 +110,54 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     eTag = cursor.getString(DatabaseOH.COLUMNS.ETAG.ordinal());
                 }
 
-                SiteResponse response = downloadUrl(url, 15000, 10000, "GET",ldate, eTag);
-                if (response.payload==null){
-                    //TODO log/handle this error, handle unchanged
-                    continue;
-                }
-                String data = new String(response.payload);
-                int hashCode = data.hashCode();
+                int readTimeout = Integer.parseInt(sitePreference.getString("pref_site_read_timeout", "15000"));
+                int connectTimeout = Integer.parseInt(sitePreference.getString("pref_site_connection_timeout", "10000"));
 
-                if (response.responseCode!=304 && lastHash != hashCode){
-                    createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
-                    ContentValues updateValues = new ContentValues();
-                    updateValues.put("LUDATE", HSCMain.df.format(new Date())+" GMT");
-                    updateValues.put("HASH", hashCode);
-                    if (response.eTag!=null)
-                        updateValues.put("ETAG", response.eTag);
-                    updateValues.put("FAVICON", downloadUrl("http://www.google.com/s2/favicons?domain="+sitePreference.getString("pref_site_url", null), 15000, 10000, "GET", ldate, null).payload);
-                    //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
-                    try {
-                        contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{""+id});
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
+                SiteResponse response = downloadUrl(url, connectTimeout, readTimeout, "GET",ldate, eTag);
+
+                ContentValues updateValues = new ContentValues();
+                LinkedHashMap<Long, String> history;
+
+                String historyRaw = cursor.getString(DatabaseOH.COLUMNS.HISTORY.ordinal());
+                if (historyRaw==null || historyRaw.length()==0){
+                    history = new LinkedHashMap<Long, String>();
+                }else{
+                    history = gson.fromJson(historyRaw, historyType);
+                }
+
+                history.put(System.currentTimeMillis(), response.responseCode + "");
+
+                updateValues.put("HISTORY", gson.toJson(history));
+
+                if (response.responseCode==200) {
+                    if (response.payload == null) {
+                        //TODO log/handle this error, handle unchanged
+                        Log.e("SyncAdapter: " + url, "Response is 200 but payload is null");
+                        continue;
                     }
+                    String data = new String(response.payload);
+                    int hashCode = data.hashCode();
+
+                    if (response.responseCode != 304 && lastHash != hashCode) {
+                        createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
+
+                        updateValues.put("LUDATE", HSCMain.df.format(new Date()) + " GMT");
+                        updateValues.put("HASH", hashCode);
+                        if (response.eTag != null)
+                            updateValues.put("ETAG", response.eTag);
+                        if (sitePreference.getBoolean("pref_site_download_favicon", false))
+                            updateValues.put("FAVICON", downloadUrl("http://www.google.com/s2/favicons?domain=" + sitePreference.getString("pref_site_url", null), connectTimeout, readTimeout, "GET", ldate, null).payload);
+                        //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
+                    }
+                    Log.d("SyncAdapter: " + url, "Changed? Hash is " + hashCode + " vs " + lastHash);
                 }
 
-                Log.d("SyncAdapter: "+url, "Hash is "+hashCode + " vs "+lastHash);
+                try {
+                    contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{"" + id});
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+
             }
 
             cursor.close();
@@ -127,7 +169,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     // Given a URL, establishes an HttpUrlConnection and retrieves
     // the web page content as a InputStream, which it returns as
     // a string.
-    private static SiteResponse downloadUrl(String myurl, int readTimeout, int connectTimeout, String method, String fromDate, String eTag) {
+    private static SiteResponse downloadUrl(String myurl, int connectTimeout, int readTimeout, String method, String fromDate, String eTag) {
         InputStream is = null;
 
         SiteResponse out = new SiteResponse();
@@ -179,13 +221,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            out.responseCode = SiteResponse.MALFORMEDURL;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (ProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            out.responseCode = SiteResponse.IOEXCEPTION;
         } finally {
             if (is != null) {
                 try {

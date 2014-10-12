@@ -6,14 +6,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 
-import java.util.Calendar;
+import java.util.Date;
 
 public class DatabaseOH extends SQLiteOpenHelper {
     private static final String DBNAME = "HSCdb";
     private static Uri baseURI;
 
     public DatabaseOH(Context context) {
-        super(context, DBNAME, null, 19);
+        super(context, DBNAME, null, 20);
     }
 
     public static Uri getBaseURI(){
@@ -30,14 +30,14 @@ public class DatabaseOH extends SQLiteOpenHelper {
      * ID   URL     LUDATE      HASH     FAVICON        CONTENT        METHOD, TYPE, TIMEFRAME, EXACT, DATA
      */
     public static enum COLUMNS{
-        _id, URL, LUDATE, HASH, ETAG, FAVICON, CONTENT
+        _id, URL, LUDATE, HASH, ETAG, FAVICON, CONTENT, HISTORY
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, ETAG TEXT, FAVICON BLOB, CONTENT BLOB)");
+        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, ETAG TEXT, FAVICON BLOB, CONTENT BLO0, HISTORY TEXT)");
 
         //db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE, METHOD, TYPE) VALUES ('dd-wrt.com/site/index' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"', '"+ HSCMain.METHOD.SYNC.ordinal()+"' , '"+ HSCMain.TYPE.REPEATING.ordinal() + "')");
-        db.execSQL("INSERT INTO HSC (_id, URL, LUDATE) VALUES (0, 'SUMMARY', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");
+        db.execSQL("INSERT INTO HSC (_id, URL, LUDATE) VALUES (0, 'SUMMARY', '"+ HSCMain.df.format(new Date()) +"')");
     }
 
     @Override
