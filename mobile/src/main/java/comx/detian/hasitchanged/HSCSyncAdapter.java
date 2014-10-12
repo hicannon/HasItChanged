@@ -30,6 +30,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,7 +45,9 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
+import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     //ContentResolver mCR;
@@ -98,34 +103,30 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     url+="type=d";
                 }
                 int lastHash = cursor.getInt(DatabaseOH.COLUMNS.HASH.ordinal());
-                //Log.d("SyncAdapter: onPerform", cursor.getInt(0) + url + cursor.getString(3));
-                /*final HSCRequest request = new HSCRequest(Request.Method.GET, url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        int hashCode = response.hashCode();
-                        Log.d("SyncAdapter: "+url, "Hash is "+hashCode + " vs "+lastHash);
-                        //TODO check to make sure consistent hashcode across runs
-                    }
-                }, new Response.ErrorListener(){
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("SyncAdapter: " + url, " Error is " + error.getMessage());
-                    }
-                });
-                //queue.add(request);*/
-                String data = (String) downloadUrl(url, 15000, 10000, "GET", DesiredType.STRING);
-                if (data==null){
-                    //TODO log/handle this error
+
+                String ldate = null, eTag = null;
+                if (sitePreference.getBoolean("pref_site_allow_server_not_modified", false)){
+                    ldate = cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal());
+                    eTag = cursor.getString(DatabaseOH.COLUMNS.ETAG.ordinal());
+                }
+
+                SiteResponse response = downloadUrl(url, 15000, 10000, "GET",ldate, eTag);
+                if (response.payload==null){
+                    //TODO log/handle this error, handle unchanged
                     continue;
                 }
+                String data = new String(response.payload);
                 int hashCode = data.hashCode();
-                if (lastHash != hashCode){
+
+                if (response.responseCode!=304 && lastHash != hashCode){
                     createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
                     ContentValues updateValues = new ContentValues();
-                    updateValues.put("LUDATE", HSCMain.df.format(Calendar.getInstance().getTime()));
+                    updateValues.put("LUDATE", HSCMain.df.format(new Date())+" GMT");
                     updateValues.put("HASH", hashCode);
+                    if (response.eTag!=null)
+                        updateValues.put("ETAG", response.eTag);
                     //TODO don't update FAVICON every time
-                    updateValues.put("FAVICON", (byte[]) downloadUrl("http://www.google.com/s2/favicons?domain="+sitePreference.getString("pref_site_url", null), 15000, 10000, "GET", DesiredType.RAW));
+                    updateValues.put("FAVICON", downloadUrl("http://www.google.com/s2/favicons?domain="+sitePreference.getString("pref_site_url", null), 15000, 10000, "GET", ldate, null).payload);
                     //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
                     try {
                         contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{""+id});
@@ -146,32 +147,47 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     // Given a URL, establishes an HttpUrlConnection and retrieves
     // the web page content as a InputStream, which it returns as
     // a string.
-    private static Object downloadUrl(String myurl, int readTimeout, int connectTimeout, String method, DesiredType type) {
+    private static SiteResponse downloadUrl(String myurl, int readTimeout, int connectTimeout, String method, String fromDate, String eTag) {
         InputStream is = null;
-        // Only display the first 500 characters of the retrieved
-        // web page content.
-        int len = 500;
-        Object out = null;
+
+        SiteResponse out = new SiteResponse();
         try {
             URL url = new URL(myurl);
             URLConnection conn = (URLConnection) url.openConnection();
+            //Don't rely on content length and re-enable gzip compression (maybe use AndroidHTTPClient
+            conn.setRequestProperty("Accept-Encoding", "identity");
+
             conn.setReadTimeout(readTimeout /* milliseconds */);
             conn.setConnectTimeout(connectTimeout /* milliseconds */);
-            if (conn instanceof HttpURLConnection)
-                ((HttpURLConnection)conn).setRequestMethod(method);
+            if (conn instanceof HttpURLConnection) {
+                ((HttpURLConnection) conn).setRequestMethod(method);
+                if (fromDate!=null) {
+                    HSCMain.df.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    Log.d("DownloadURL", fromDate + HSCMain.df.format(new Date()));
+                    conn.setRequestProperty("If-Modified-Since", fromDate);
+                    if (eTag!=null && eTag.length()!=0)
+                        conn.setRequestProperty("If-None-Match", eTag);
+                    conn.setUseCaches(true);
+                }else{
+                    conn.setUseCaches(false);
+                }
+            }
             conn.setDoInput(true);
             // Starts the query
             conn.connect();
 
             if (conn instanceof HttpURLConnection) {
                 int response = ((HttpURLConnection)conn).getResponseCode();
-                Log.d("DownloadURL", "The response is: " + response);
+                String eTagNew = conn.getHeaderField("ETag");
+                Log.d("DownloadURL", "The response code is: " + response + " " + eTagNew);
+                out.responseCode = response;
+                out.eTag = eTag;
             }
 
             is = conn.getInputStream();
-            Log.d("DownloadURL", "The size is: " + conn.getContentLength());
+            Log.d("DownloadURL", "The Content-Length is: " + conn.getContentLength());
 
-            switch(type){
+            /*switch(type){
                 case STRING:
                     out = convertStreamToString(is);
                     break;
@@ -185,7 +201,17 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     break;
                 default:
                     break;
+            }*/
+
+            if (conn.getContentLength()>0) {
+                out.payload = new byte[conn.getContentLength()];
+                is.read(out.payload);
+            }else{
+                out.payload = readFully(is);
+                Log.d("DownloadURL:", "Read " + out.payload.length);
             }
+
+
             // Convert the InputStream into a string
             //contentAsString = readIt(is, len);
             //contentAsString = convertStreamToString(is);
@@ -224,6 +250,17 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     static String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    static byte[] readFully(InputStream is) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BufferedOutputStream bout = new BufferedOutputStream(out);
+        BufferedInputStream bis = new BufferedInputStream(is);
+        int data = -1;
+        while ((data = bis.read())!=-1){
+            bout.write(data);
+        }
+        return out.toByteArray();
     }
 
     private void createNotification(String title, String content, byte[] icon) {

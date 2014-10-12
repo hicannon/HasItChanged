@@ -13,7 +13,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
     private static Uri baseURI;
 
     public DatabaseOH(Context context) {
-        super(context, DBNAME, null, 18);
+        super(context, DBNAME, null, 19);
     }
 
     public static Uri getBaseURI(){
@@ -30,14 +30,14 @@ public class DatabaseOH extends SQLiteOpenHelper {
      * ID   URL     LUDATE      HASH     FAVICON        CONTENT        METHOD, TYPE, TIMEFRAME, EXACT, DATA
      */
     public static enum COLUMNS{
-        _id, URL, LUDATE, HASH, FAVICON, CONTENT
+        _id, URL, LUDATE, HASH, ETAG, FAVICON, CONTENT
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, FAVICON BLOB, CONTENT BLOB)");
+        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, ETAG TEXT, FAVICON BLOB, CONTENT BLOB)");
 
         //db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE, METHOD, TYPE) VALUES ('dd-wrt.com/site/index' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"', '"+ HSCMain.METHOD.SYNC.ordinal()+"' , '"+ HSCMain.TYPE.REPEATING.ordinal() + "')");
-        db.execSQL("INSERT INTO HSC (_id, URL, LUDATE) VALUES (0, 'dummy', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");
+        db.execSQL("INSERT INTO HSC (_id, URL, LUDATE) VALUES (0, 'SUMMARY', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"')");
     }
 
     @Override

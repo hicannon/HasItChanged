@@ -22,13 +22,15 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 
 public class HSCMain extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     protected static final String AUTHORITY = "comx.detian.hasitchanged.provider";
-    static final SimpleDateFormat df = new SimpleDateFormat("dd/MMM/yyyy");
+    //RFC 822 date format
+    static final SimpleDateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
     static final String PREFERENCE_PREFIX = "HSCPREFERENCE.";
     Account mAccount;
     ContentResolver mResolver;
@@ -58,7 +60,7 @@ public class HSCMain extends Activity
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        mTitle = "HSC?";//getTitle();
 
         Account[] accounts = ((AccountManager) this.getSystemService(ACCOUNT_SERVICE)).getAccountsByType("HSC.comx");
         if (accounts.length>=1){
@@ -76,6 +78,8 @@ public class HSCMain extends Activity
         Bundle params = new Bundle();
 
         //ContentResolver.addPeriodicSync(mAccount, AUTHORITY, params, 120);
+
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(

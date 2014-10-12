@@ -141,7 +141,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     if (raw!=null)
                         imageView.setImageBitmap(BitmapFactory.decodeByteArray(raw, 0, raw.length));
                     else{
-                        imageView.setImageResource(android.R.color.transparent);
+                        imageView.setImageResource(android.R.color.holo_red_dark);
                     }
                     return true;
                 }else{
@@ -170,9 +170,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         return mDrawerListView;
     }
 
-    /*private Cursor getSitesCursor() {
+    private Cursor getSitesCursor() {
         return getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), new String[]{"_id", "URL", "FAVICON"}, null, null, null);
-    }*/
+    }
 
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mFragmentContainerView);
@@ -254,6 +254,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     private void selectItem(int position, long id) {
         Log.d("NavigationDrawer: ", "select item "+ position + " " + id);
+
+        //A listener that updates the URL displayed in the Navigation Drawer immediately if it is changed
         SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+id, Context.MODE_MULTI_PROCESS);
         targetPref.registerOnSharedPreferenceChangeListener(this);
 
@@ -264,6 +266,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
         mCurrentSelectedPosition = position;
         mCurrentId = id;
+
         if (mDrawerListView != null) {
             mDrawerListView.setItemChecked(position, true);
         }
@@ -354,10 +357,13 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             ContentValues values = new ContentValues();
             values.put("URL", "");
             Uri uri = getActivity().getContentResolver().insert(DatabaseOH.getBaseURI(), values);
-            //mAdapter.changeCursor(getSitesCursor());
-            getLoaderManager().restartLoader(0, null, this);
-            //mAdapter.notifyDataSetChanged();
+            mAdapter.changeCursor(getSitesCursor());
+            mAdapter.notifyDataSetChanged();
+            //TODO NavigationDrawer will not upddate properly if using LoadManager due to timing
+            //getLoaderManager().restartLoader(0, null ,this);
+            //mDrawerListView.postInvalidate();
             selectItem(mAdapter.getCount()-1, ContentUris.parseId(uri));
+
             return true;
         }else if (item.getItemId() == R.id.delete_site){
             Log.d("NavigationDrawer: ", "Delete");
@@ -417,7 +423,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
             getLoaderManager().restartLoader(0, null, this);
             //mAdapter.changeCursor(getSitesCursor());
-            mAdapter.notifyDataSetChanged();
+            //mAdapter.notifyDataSetChanged();
         }
     }
 

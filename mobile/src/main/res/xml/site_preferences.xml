@@ -24,4 +24,10 @@
     android:title="Sync Method"
     android:defaultValue="sync" />
 
+<CheckBoxPreference
+    android:key="pref_site_allow_server_not_modified"
+    android:defaultValue="true"
+    android:title="Use Cache Technologies"
+    android:summary="Respect server If-Modified-Since/If-None-Match header (recommended)" />
+
 </PreferenceScreen>
