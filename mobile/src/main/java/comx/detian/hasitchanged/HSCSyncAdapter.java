@@ -50,37 +50,18 @@ import java.util.Objects;
 import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
-    //ContentResolver mCR;
-    //RequestQueue queue;
-
-    enum DesiredType{
-        STRING, IMAGE, RAW
-    }
-
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
-
-        /*if (context!=null)
-            mCR = context.getContentResolver();
-        else
-            Log.d("SyncAdapter: Constructor", "Context is null");*/
-
-        //Log.d("SyncAdapter: Constructor", context.toString());
-        //queue = Volley.newRequestQueue(context);
     }
 
     public HSCSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs){
         super(context, autoInitialize, allowParallelSyncs);
-
-        //mCR = context.getContentResolver();
     }
 
     @Override
     public void onPerformSync(Account account, Bundle bundle, String s, final ContentProviderClient contentProviderClient, SyncResult syncResult) {
         //TODO
         //Log.d("Sync: onPerform", "called");
-        //Intent i = new Intent(SYNC_FINISHED);
-        //sendBroadcast(i);
 
         try {
             Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
@@ -125,7 +106,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     updateValues.put("HASH", hashCode);
                     if (response.eTag!=null)
                         updateValues.put("ETAG", response.eTag);
-                    //TODO don't update FAVICON every time
                     updateValues.put("FAVICON", downloadUrl("http://www.google.com/s2/favicons?domain="+sitePreference.getString("pref_site_url", null), 15000, 10000, "GET", ldate, null).payload);
                     //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
                     try {
@@ -154,8 +134,9 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             URL url = new URL(myurl);
             URLConnection conn = (URLConnection) url.openConnection();
+            //RESOLVED
             //Don't rely on content length and re-enable gzip compression (maybe use AndroidHTTPClient
-            conn.setRequestProperty("Accept-Encoding", "identity");
+            //conn.setRequestProperty("Accept-Encoding", "identity");
 
             conn.setReadTimeout(readTimeout /* milliseconds */);
             conn.setConnectTimeout(connectTimeout /* milliseconds */);
@@ -187,22 +168,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             is = conn.getInputStream();
             Log.d("DownloadURL", "The Content-Length is: " + conn.getContentLength());
 
-            /*switch(type){
-                case STRING:
-                    out = convertStreamToString(is);
-                    break;
-                case RAW:
-                    if (conn.getContentLength()>0) {
-                        out = new byte[conn.getContentLength()];
-                        is.read((byte[]) out);
-                    }else{
-                        out = null;
-                    }
-                    break;
-                default:
-                    break;
-            }*/
-
             if (conn.getContentLength()>0) {
                 out.payload = new byte[conn.getContentLength()];
                 is.read(out.payload);
@@ -210,11 +175,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 out.payload = readFully(is);
                 Log.d("DownloadURL:", "Read " + out.payload.length);
             }
-
-
-            // Convert the InputStream into a string
-            //contentAsString = readIt(is, len);
-            //contentAsString = convertStreamToString(is);
 
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
@@ -236,15 +196,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             }
         }
         return out;
-    }
-
-    // Reads an InputStream and converts it to a String.
-    public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
-        Reader reader = null;
-        reader = new InputStreamReader(stream, "UTF-8");
-        char[] buffer = new char[len];
-        reader.read(buffer);
-        return new String(buffer);
     }
 
     static String convertStreamToString(java.io.InputStream is) {

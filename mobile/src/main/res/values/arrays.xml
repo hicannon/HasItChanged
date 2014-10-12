@@ -21,4 +21,12 @@
         <item name="sync">sync</item>
         <item name="alarm">alarm</item>
     </string-array>
+    <string-array name="syncTypes">
+        <item name="elapsed_time">Elapsed Time</item>
+        <item name="fixed_time">Fixed Time</item>
+    </string-array>
+    <string-array name="syncTypeValues">
+        <item name="elapsed_time">elapsed_time</item>
+        <item name="fixed_time">fixed_time</item>
+    </string-array>
 </resources>
