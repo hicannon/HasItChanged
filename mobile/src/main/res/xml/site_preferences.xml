@@ -44,6 +44,12 @@
         android:title="Timeframe"/>-->
 
     <CheckBoxPreference
+        android:key="pref_site_use_smart_compare"
+        android:defaultValue="true"
+        android:title="Use Smart Compare"
+        android:summary="(EXPERIMENTAL) Try to ignore non-content changes like banners and ads." />
+
+   <CheckBoxPreference
         android:key="pref_site_download_favicon"
         android:defaultValue="true"
         android:title="Download Favicon"

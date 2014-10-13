@@ -26,6 +26,11 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -153,6 +158,20 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                         continue;
                     }
                     String data = new String(response.payload);
+
+                    if (sitePreference.getBoolean("pref_site_use_smart_compare", false)){
+                        Document doc = Jsoup.parse(data);
+                        Element e = doc.body().select("#b_results, #ires, #content, .content, content, [ID*=content]").first();
+                        if (e==null){
+                            e = doc.body();
+                        }
+                        String temp = "";
+                        for (Element ele : e.getAllElements()){
+                            temp+=ele.ownText();
+                        }
+                        data = temp;
+                    }
+
                     int hashCode = data.hashCode();
 
                     if (lastHash != hashCode) {
@@ -192,7 +211,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             //Update next sync interval
             long nextSync = HSCMain.calculateTimeToSync(targetTimes, syncTimes) / 1000; // in seconds
             Log.d("CalcFuture", "Scheduling sync for "+nextSync+" seconds in the future");
-            nextSync = nextSync < 0 ? 1 : nextSync;
+            nextSync = nextSync < 60 ? 120 : nextSync; //TODO don't spam sync
             ContentResolver.addPeriodicSync(((AccountManager) getContext().getSystemService(Context.ACCOUNT_SERVICE)).getAccountsByType("HSC.comx")[0], HSCMain.AUTHORITY, new Bundle(), nextSync);
         } catch (RemoteException e) {
             e.printStackTrace();
