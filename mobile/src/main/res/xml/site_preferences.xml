@@ -33,11 +33,15 @@
         android:defaultValue="elapsed_time" />
 
     <EditTextPreference
-        android:key="pref_site_sync_time"
+        android:key="pref_site_sync_time_elapsed"
         android:inputType="textNoSuggestions"
-        android:title="Timeframe"
-        android:summary="EX: 10 min"
-        android:defaultValue=""/>
+        android:title="Timeframe (give units: milli, sec, min, hour, day, week)"
+        android:summary="EX: 10 min 30 sec."
+        android:defaultValue="never"/>
+
+   <!-- <comx.detian.hasitchanged.TimePreference
+        android:key="pref_site_sync_time"
+        android:title="Timeframe"/>-->
 
     <CheckBoxPreference
         android:key="pref_site_download_favicon"

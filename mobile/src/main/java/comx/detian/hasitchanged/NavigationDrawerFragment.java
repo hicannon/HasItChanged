@@ -37,6 +37,8 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
@@ -166,7 +168,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     }
 
     private Cursor getSitesCursor() {
-        return getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), new String[]{"_id", "URL", "FAVICON"}, null, null, null);
+        return getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null);
     }
 
     public boolean isDrawerOpen() {
@@ -331,8 +333,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
 
         if (item.getItemId() == R.id.manual_sync) {
-            Toast.makeText(getActivity(), "Checking for Changes", Toast.LENGTH_SHORT).show();
-
             if (ContentResolver.isSyncPending(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY) ||
                     ContentResolver.isSyncActive(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY)){
                 Log.d("SYNC: Manual", "Sync pending, cancelling");
@@ -343,6 +343,13 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     ContentResolver.SYNC_EXTRAS_MANUAL, true);
             params.putBoolean(
                     ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+            if (mCurrentId==0){
+                params.putBoolean("FORCE_SYNC_ALL", true);
+                Toast.makeText(getActivity(), "Checking All for Changes", Toast.LENGTH_SHORT).show();
+            }else {
+                params.putBoolean("FORCE_SYNC_"+mCurrentId, true);
+                Toast.makeText(getActivity(), "Checking this for Changes", Toast.LENGTH_SHORT).show();
+            }
             ContentResolver.requestSync(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY, params);
             //mAdapter.changeCursor(getSitesCursor());
             getLoaderManager().restartLoader(0, null, this);
@@ -358,7 +365,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             //getLoaderManager().restartLoader(0, null ,this);
             //mDrawerListView.postInvalidate();
             selectItem(mAdapter.getCount()-1, ContentUris.parseId(uri));
-
             return true;
         }else if (item.getItemId() == R.id.delete_site){
             Log.d("NavigationDrawer: ", "Delete");
@@ -375,6 +381,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     //mAdapter.changeCursor(getSitesCursor());
                     //mAdapter.notifyDataSetChanged();
                     selectItem(0, 0); //Switch to overview
+                    updateNextSyncTime();
                 }
             });
 
@@ -386,7 +393,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             });
 
             AlertDialog dialog = builder.show();
-
             return true;
         }
 
@@ -419,12 +425,39 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             getLoaderManager().restartLoader(0, null, this);
             //mAdapter.changeCursor(getSitesCursor());
             //mAdapter.notifyDataSetChanged();
+        }else if (key.equals("pref_site_sync_time_elapsed")){
+            updateNextSyncTime();
         }
+    }
+
+    private void updateNextSyncTime() {
+        ArrayList<String> targetTimes = new ArrayList<String>();
+        ArrayList<String> syncTimes = new ArrayList<String>();
+
+
+        for (int i = 1; i<mAdapter.getCount(); i++) {
+            long siteId = mAdapter.getItemId(i);
+            SharedPreferences sp = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + siteId, Context.MODE_MULTI_PROCESS);
+            if (sp.getString("pref_sync_method", "sync").equals("sync")) {
+                if (!sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
+                    targetTimes.add(sp.getString("pref_site_sync_time_elapsed", "never"));
+                    //System.out.println(targetTimes[i-1]);
+                    syncTimes.add(((Cursor) mAdapter.getItem(i)).getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
+                }
+            }
+        }
+
+        long nextSync = HSCMain.calculateTimeToSync(targetTimes, syncTimes) / 1000; // in seconds
+        Log.d("CalcFuture", "Scheduling sync for " + nextSync + " milli in the future");
+        nextSync = nextSync < 0 ? 1 : nextSync;
+        
+        ContentResolver.addPeriodicSync(((HSCMain) getActivity()).mAccount, HSCMain.AUTHORITY, new Bundle(), nextSync);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(getActivity(), DatabaseOH.getBaseURI(), new String[]{"_id", "URL", "FAVICON"}, null, null, null);
+        //return new CursorLoader(getActivity(), DatabaseOH.getBaseURI(), new String[]{"_id", "URL", "FAVICON"}, null, null, null);
+        return new CursorLoader(getActivity(), DatabaseOH.getBaseURI(), null, null, null, null);
     }
 
     @Override

@@ -9,10 +9,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.TimeZone;
 
 
@@ -25,6 +29,75 @@ public class HSCMain extends Activity
     static final String PREFERENCE_PREFIX = "HSCPREFERENCE.";
     Account mAccount;
     ContentResolver mResolver;
+
+    //in Milliseconds
+    static long calculateTimeToSync(ArrayList<String> targetTimes, ArrayList<String> syncTimes) {
+        long minTimeToSync = Long.MAX_VALUE;
+        for (int i = 0; i<targetTimes.size(); i++) {
+            if (syncTimes.get(i)==null){ //this entry has never been synced
+                minTimeToSync = 0;
+                break;
+            }
+            long timeDifference = calcTimeDiff(syncTimes.get(i), targetTimes.get(i));
+            if (timeDifference<minTimeToSync){
+                minTimeToSync = timeDifference;
+            }
+        }
+        return minTimeToSync;
+    }
+
+    /**
+     *
+     * @param lastSyncTime - DB stored GMT timestamp
+     * @param targetT - User given time string for sync interval
+     * @return time in mills of how far in the in future the next sync should be
+     */
+    static long calcTimeDiff(String lastSyncTime, String targetT) {
+        long elapsedTime;
+        String[] pieces = targetT.split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
+        long targetTime = 0;
+        long temp = -1;
+        for(int j=0; j< pieces.length; j++){
+            //Start with number
+            if (temp<0) {
+                try {
+                    temp = Long.parseLong(pieces[j]);
+                }catch (NumberFormatException e){}
+            }else{ //get units for number
+                pieces[j] = pieces[j].trim().toLowerCase();
+                long temp2 = temp;
+                temp = -1;
+                if (pieces[j].equals("milli")){
+                    targetTime+=temp2;
+                }else if (pieces[j].equals("sec")){
+                    targetTime+=(temp2*1000);
+                }else if (pieces[j].equals("min")){
+                    targetTime+=(temp2*1000*60);
+                }else if (pieces[j].equals("hour")){
+                    targetTime+=(temp2*1000*60*60);
+                }else if (pieces[j].equals("day")){
+                    targetTime+=(temp2*1000*60*60*24);
+                }else if (pieces[j].equals("week")){
+                    targetTime+=(temp2*1000*60*60*24*7);
+                }else{
+                    //Not valid unit, continue trying to get valid num
+                    temp = temp2;
+                }
+            }
+        }
+        try {
+            elapsedTime = (new Date()).getTime() - df.parse(lastSyncTime).getTime();
+        } catch (Exception e) {
+            elapsedTime = targetTime;
+        }
+
+        long timeDifference = targetTime - elapsedTime;
+
+        Log.d("CalcFuture", " Item has passed " + elapsedTime + " on its way to " + targetTime);
+        Log.d("CalcFuture", "Item has " + timeDifference + " to go before sync");
+
+        return timeDifference;
+    }
 
     public static enum METHOD{
         SYNC, ALARM

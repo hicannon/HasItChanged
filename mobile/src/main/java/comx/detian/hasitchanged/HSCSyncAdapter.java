@@ -1,10 +1,12 @@
 package comx.detian.hasitchanged;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,6 +37,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.TimeZone;
@@ -73,7 +76,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         try {
+            boolean forceSyncAll = bundle.getBoolean("FORCE_SYNC_ALL");
+
             Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
+
+            ArrayList<String> targetTimes = new ArrayList<String>();
+            ArrayList<String> syncTimes = new ArrayList<String>();
+
             Log.d("SyncAdapter: onPerform", "Iterating....");
 
             //Skip first dummy
@@ -84,8 +93,22 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 Log.d("SyncAdapter: onPerform", "Loading preference " + HSCMain.PREFERENCE_PREFIX + id);
                 SharedPreferences sitePreference = getContext().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+id, Context.MODE_MULTI_PROCESS);
 
+                //Keep track of data to calculate time to next sync
+                if (sitePreference.getString("pref_sync_method", "sync").equals("sync")) {
+                    if (!sitePreference.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
+                        targetTimes.add(sitePreference.getString("pref_site_sync_time_elapsed", "never"));
+                        //System.out.println(targetTimes[i-1]);
+                        syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
+                    }
+                }
+
                 if (sitePreference.getBoolean("pref_site_wifi_only", false) && activeNetwork.getType() != ConnectivityManager.TYPE_WIFI){
                     Log.d("SyncAdapter: onPerform", "Skipping due to not on wifi");
+                    continue;
+                }
+
+                //Only sync thosse whose time is up with grace period of 1 min
+                if (!forceSyncAll && !bundle.getBoolean("FORCE_SYNC_"+id) && HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never")) > 60){
                     continue;
                 }
 
@@ -112,6 +135,8 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 SiteResponse response = downloadUrl(url, connectTimeout, readTimeout, "GET", ldate, eTag);
 
                 ContentValues updateValues = new ContentValues();
+                updateValues.put("LUDATE", HSCMain.df.format(new Date()) + " GMT");
+
                 LinkedHashMap<Long, String> history;
 
                 String historyRaw = cursor.getString(DatabaseOH.COLUMNS.HISTORY.ordinal());
@@ -133,7 +158,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     if (lastHash != hashCode) {
                         createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
 
-                        updateValues.put("LUDATE", HSCMain.df.format(new Date()) + " GMT");
                         updateValues.put("HASH", hashCode);
                         if (response.eTag != null)
                             updateValues.put("ETAG", response.eTag);
@@ -153,13 +177,23 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 try {
                     contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{"" + id});
+
+                    //This item was synced, so use the new timestamp
+                    syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
+                    syncTimes.remove(syncTimes.size()-1);
+                    syncTimes.add(updateValues.getAsString("LUDATE"));
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
 
             }
-
             cursor.close();
+
+            //Update next sync interval
+            long nextSync = HSCMain.calculateTimeToSync(targetTimes, syncTimes) / 1000; // in seconds
+            Log.d("CalcFuture", "Scheduling sync for "+nextSync+" seconds in the future");
+            nextSync = nextSync < 0 ? 1 : nextSync;
+            ContentResolver.addPeriodicSync(((AccountManager) getContext().getSystemService(Context.ACCOUNT_SERVICE)).getAccountsByType("HSC.comx")[0], HSCMain.AUTHORITY, new Bundle(), nextSync);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -186,7 +220,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 ((HttpURLConnection) conn).setRequestMethod(method);
                 if (fromDate!=null) {
                     HSCMain.df.setTimeZone(TimeZone.getTimeZone("GMT"));
-                    Log.d("SyncAdapter: DownloadURL", fromDate + HSCMain.df.format(new Date()));
+                    Log.d("SyncAdapter: DownloadURL", fromDate);
                     conn.setRequestProperty("If-Modified-Since", fromDate);
                     if (eTag!=null && eTag.length()!=0)
                         conn.setRequestProperty("If-None-Match", eTag);
