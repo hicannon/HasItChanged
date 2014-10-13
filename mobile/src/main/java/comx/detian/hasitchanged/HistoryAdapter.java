@@ -5,9 +5,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.provider.ContactsContract;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,10 +32,10 @@ public class HistoryAdapter extends BaseAdapter {
 
         this.context = context;
         gson = new GsonBuilder().create();
-        addAllFroomCurosr(c);
+        addAllFromCurosr(c);
     }
 
-    public void addAllFroomCurosr(Cursor cursor) {
+    public void addAllFromCurosr(Cursor cursor) {
         //Skip first dummy
         cursor.moveToNext();
 
