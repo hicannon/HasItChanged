@@ -67,17 +67,20 @@ public class HistoryAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int i) {
+        i = getCount()-i-1;
         //TODO store array instead of creating
         return data.values().toArray()[i];
     }
 
     public Object getKey(int i) {
+        i = getCount()-i-1;
         //TODO store array instead of creating
         return data.keySet().toArray()[i];
     }
 
     @Override
     public long getItemId(int i) {
+        i = getCount()-i-1;
         return i;
     }
 
