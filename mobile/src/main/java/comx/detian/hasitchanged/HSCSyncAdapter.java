@@ -202,7 +202,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{"" + id});
 
                     //This item was synced, so use the new timestamp
-                    syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
                     syncTimes.remove(syncTimes.size()-1);
                     syncTimes.add(updateValues.getAsString("LUDATE"));
                 } catch (RemoteException e) {

@@ -32,6 +32,9 @@ public class HSCMain extends Activity
 
     //in Milliseconds
     static long calculateTimeToSync(ArrayList<String> targetTimes, ArrayList<String> syncTimes) {
+        if (BuildConfig.DEBUG && targetTimes.size()!=syncTimes.size()){
+            throw new RuntimeException("TargetTimes and syncTimes size doesn't match "+targetTimes.size() + " vs " + syncTimes.size());
+        }
         long minTimeToSync = Long.MAX_VALUE;
         for (int i = 0; i<targetTimes.size(); i++) {
             if (syncTimes.get(i)==null){ //this entry has never been synced
@@ -62,7 +65,9 @@ public class HSCMain extends Activity
             if (temp<0) {
                 try {
                     temp = Long.parseLong(pieces[j]);
-                }catch (NumberFormatException e){}
+                }catch (NumberFormatException e){
+                    //Ignore
+                }
             }else{ //get units for number
                 pieces[j] = pieces[j].trim().toLowerCase();
                 //Grumble Grumble
@@ -101,14 +106,6 @@ public class HSCMain extends Activity
         Log.d("CalcFuture", "Item has " + timeDifference + " to go before sync");
 
         return timeDifference;
-    }
-
-    public static enum METHOD{
-        SYNC, ALARM
-    }
-
-    public static enum TYPE{
-        REPEATING, TIME
     }
 
     /**
