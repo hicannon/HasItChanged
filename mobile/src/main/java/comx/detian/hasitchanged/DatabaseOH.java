@@ -18,7 +18,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
     private static Uri baseURI;
 
     public DatabaseOH(Context context) {
-        super(context, DBNAME, null, 1);
+        super(context, DBNAME, null, 2);
     }
 
     public static Uri getBaseURI(){

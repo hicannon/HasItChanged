@@ -65,6 +65,10 @@ public class HSCMain extends Activity
                 }catch (NumberFormatException e){}
             }else{ //get units for number
                 pieces[j] = pieces[j].trim().toLowerCase();
+                //Grumble Grumble
+                if (pieces[j].endsWith("s")){
+                    pieces[j] = pieces[j].substring(0, pieces[j].length()-1);
+                }
                 long temp2 = temp;
                 temp = -1;
                 if (pieces[j].equals("milli")){
