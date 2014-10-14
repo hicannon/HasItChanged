@@ -190,6 +190,9 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     Log.d("SyncAdapter: " + url, "Changed? Hash is " + hashCode + " vs " + lastHash);
                 }else{
                     history.put(System.currentTimeMillis(), "O"+response.responseCode);
+                    if (response.responseCode!=304){
+                        createNotification(url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
+                    }
                 }
 
                 updateValues.put("HISTORY", gson.toJson(history));
@@ -207,6 +210,10 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
             }
             cursor.close();
+
+            //Update the UI
+            Intent intent = new Intent("comx.detian.hasitchanged.SYNC_COMPLETE");
+            getContext().sendBroadcast(intent);
 
             //Update next sync interval
             long nextSync = HSCMain.calculateTimeToSync(targetTimes, syncTimes) / 1000; // in seconds

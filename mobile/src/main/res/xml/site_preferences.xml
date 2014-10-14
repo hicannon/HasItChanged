@@ -45,17 +45,17 @@
         android:title="Allow Leeway"
         android:enabled="false"
         android:disableDependentsState="true"
-        android:summary="(Recommended) Saves Battery by having less wakeups. Allows sync to occur slightly off (usually by <2min), thereby allowing it to be combined with other syncs." />
+        android:summary="(Recommended) Saves Battery by having less wakeups.\nAllows sync to occur slightly off (usually by &lt;2min), thereby allowing it to be combined with other syncs." />
 
    <!-- <comx.detian.hasitchanged.TimePreference
         android:key="pref_site_sync_time"
         android:title="Timeframe"/>-->
 
-    CheckBoxPreference
+   <CheckBoxPreference
         android:key="pref_site_use_smart_compare"
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:title="Use Smart Compare"
-        android:summary="(EXPERIMENTAL) Try to ignore non-content changes like banners and ads." />
+        android:summary="(EXPERIMENTAL) Try to ignore non-content changes like banners and ads but requires more processing." />
 
    <CheckBoxPreference
         android:key="pref_site_download_favicon"

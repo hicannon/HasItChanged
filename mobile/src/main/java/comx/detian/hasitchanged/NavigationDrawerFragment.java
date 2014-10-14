@@ -6,12 +6,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -77,6 +80,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     private boolean mUserLearnedDrawer;
 
     SimpleCursorAdapter mAdapter;
+    private BroadcastReceiver receiver;
 
     public NavigationDrawerFragment() {
     }
@@ -164,6 +168,14 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                 }));*/
         mDrawerListView.setAdapter(mAdapter);
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                getLoaderManager().restartLoader(0, null, NavigationDrawerFragment.this);
+            }
+        };
+        getActivity().registerReceiver(receiver, new IntentFilter("comx.detian.hasitchanged.SYNC_COMPLETE"));
         return mDrawerListView;
     }
 
@@ -289,6 +301,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
+        getActivity().unregisterReceiver(receiver);
     }
 
     @Override
@@ -352,7 +365,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             }
             ContentResolver.requestSync(((HSCMain)getActivity()).mAccount, HSCMain.AUTHORITY, params);
             //mAdapter.changeCursor(getSitesCursor());
-            getLoaderManager().restartLoader(0, null, this);
+            //getLoaderManager().restartLoader(0, null, this);
             //mAdapter.notifyDataSetChanged();
             return true;
         }else if (item.getItemId() == R.id.add_site){
@@ -450,7 +463,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         long nextSync = HSCMain.calculateTimeToSync(targetTimes, syncTimes) / 1000; // in seconds
         Log.d("CalcFuture", "Scheduling sync for " + nextSync + " milli in the future");
         nextSync = nextSync < 0 ? 1 : nextSync;
-        
+
         ContentResolver.addPeriodicSync(((HSCMain) getActivity()).mAccount, HSCMain.AUTHORITY, new Bundle(), nextSync);
     }
 

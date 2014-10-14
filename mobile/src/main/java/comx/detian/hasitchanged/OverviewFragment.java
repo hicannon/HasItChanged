@@ -2,12 +2,18 @@ package comx.detian.hasitchanged;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 
 /**
@@ -30,6 +36,8 @@ public class OverviewFragment extends Fragment {
     //private OnFragmentInteractionListener mListener;
 
     private ListView historyView;
+    private HistoryAdapter historyAdapter;
+    private BroadcastReceiver receiver;
 
     /**
      * Use this factory method to create a new instance of
@@ -55,6 +63,14 @@ public class OverviewFragment extends Fragment {
             //mParam1 = getArguments().getString(ARG_PARAM1);
             //mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                updateContent();
+            }
+        };
+        getActivity().registerReceiver(receiver, new IntentFilter("comx.detian.hasitchanged.SYNC_COMPLETE"));
     }
 
     @Override
@@ -63,8 +79,19 @@ public class OverviewFragment extends Fragment {
         // Inflate the layout for this fragment
         View out =  inflater.inflate(R.layout.fragment_overview, container, false);
         historyView = (ListView) out.findViewById(R.id.history);
-        historyView.setAdapter(new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null)));
+        historyAdapter = new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
+        historyView.setAdapter(historyAdapter);
+
+        out.findViewById(R.id.history_button_collapse).setOnClickListener(historyAdapter);
         return out;
+    }
+
+    private void updateContent(){
+        historyAdapter.clear();
+        historyAdapter.addAllFromCurosr(getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
+        historyAdapter.notifyDataSetChanged();
+        historyView.invalidate();
+        Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -89,6 +116,7 @@ public class OverviewFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         //mListener = null;
+        getActivity().unregisterReceiver(receiver);
     }
 
     /**

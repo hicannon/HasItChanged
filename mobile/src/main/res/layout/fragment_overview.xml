@@ -1,19 +1,50 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="comx.detian.hasitchanged.OverviewFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout
+        android:id="@+id/history_buttons"
+        android:shrinkColumns="2"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/history_button_collapse"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:layout_marginTop="5dip"
+            android:layout_weight=".50"
+            android:text="Collapse/Expand"
+            />
+
+        <Button
+            android:id="@+id/history_button_filter"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:layout_marginTop="5dip"
+            android:layout_weight=".50"
+            android:text="Filter"
+            />
+    </LinearLayout>
+
     <ListView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/history"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/history_buttons"
         android:choiceMode="none"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="2dp"
         android:background="@android:color/white"
         tools:context=".OverviewFragment" />
-
-</FrameLayout>
+</RelativeLayout>
