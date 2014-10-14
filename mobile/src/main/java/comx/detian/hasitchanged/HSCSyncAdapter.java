@@ -49,6 +49,7 @@ import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     Gson gson;
+    int numMessages = 0;
 
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
@@ -68,7 +69,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle bundle, String s, final ContentProviderClient contentProviderClient, SyncResult syncResult) {
-        //TODO
+        numMessages = 0;
         //Log.d("Sync: onPerform", "called");
 
         ConnectivityManager cm =
@@ -117,9 +118,9 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     continue;
                 }
 
-                String url = sitePreference.getString("pref_site_protocol", "http") + "://" +sitePreference.getString("pref_site_url", null);
+                String url = sitePreference.getString("pref_site_protocol", "http") + "://" +sitePreference.getString("pref_site_url", "");
                 //String url = cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()) +"://"+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
-                if (url==null || url.trim().length()==0){
+                if (url==null || sitePreference.getString("pref_site_url", "").trim().length()==0){
                     continue;
                 }
                 if (sitePreference.getString("pref_site_protocol", null).equals("ftp")){
@@ -234,7 +235,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         SiteResponse out = new SiteResponse();
         try {
             URL url = new URL(myurl);
-            URLConnection conn = (URLConnection) url.openConnection();
+            URLConnection conn = url.openConnection();
             //RESOLVED
             //Don't rely on content length and re-enable gzip compression (maybe use AndroidHTTPClient
             //conn.setRequestProperty("Accept-Encoding", "identity");
@@ -322,7 +323,8 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this.getContext())
                 .setContentTitle(title)
                 .setContentText(content)
-                .setSmallIcon(R.drawable.ic_launcher);
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setNumber(++numMessages);
         if (icon!=null)
                 mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
 

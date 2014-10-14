@@ -432,7 +432,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         Log.d("NavigationDrawer: ", "PreferenceChange triggered");
         if (key.equals("pref_site_url")){
             ContentValues updateValues = new ContentValues();
-            updateValues.put("URL", sharedPreferences.getString("pref_site_url", null));
+            updateValues.put("URL", sharedPreferences.getString("pref_site_url", ""));
             getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), updateValues, "_id=?", new String[]{""+mCurrentId});
 
             getLoaderManager().restartLoader(0, null, this);

@@ -4,6 +4,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -86,7 +87,7 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         }else if (key.equals("pref_site_sync_method")){
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: SYNC"));
         }else if (key.equals("pref_site_sync_method")){
-            findPreference(key).setEnabled(!sharedPreferences.getString("pref_site_sync_method", "sync").equals("sync"));
+            ((CheckBoxPreference) findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
         }
     }
     /*@Override
