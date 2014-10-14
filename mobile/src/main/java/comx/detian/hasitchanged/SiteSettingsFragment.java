@@ -81,11 +81,13 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         Log.d("SiteSettings: ", "PreferenceChange triggered");
         if (key.equals("pref_site_url")){
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: google.com"));
-        }/*else if (key.equals("pref_site_protocol")){
+        }else if (key.equals("pref_site_protocol")){
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: HTTP"));
         }else if (key.equals("pref_site_sync_method")){
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: SYNC"));
-        }*/
+        }else if (key.equals("pref_site_sync_method")){
+            findPreference(key).setEnabled(!sharedPreferences.getString("pref_site_sync_method", "sync").equals("sync"));
+        }
     }
     /*@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

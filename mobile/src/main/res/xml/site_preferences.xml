@@ -39,11 +39,19 @@
         android:summary="EX: 10 min 30 sec."
         android:defaultValue="never"/>
 
+    <CheckBoxPreference
+        android:key="pref_site_sync_allow_inexact"
+        android:defaultValue="true"
+        android:title="Allow Leeway"
+        android:enabled="false"
+        android:disableDependentsState="true"
+        android:summary="(Recommended) Saves Battery by having less wakeups. Allows sync to occur slightly off (usually by <2min), thereby allowing it to be combined with other syncs." />
+
    <!-- <comx.detian.hasitchanged.TimePreference
         android:key="pref_site_sync_time"
         android:title="Timeframe"/>-->
 
-    <CheckBoxPreference
+    CheckBoxPreference
         android:key="pref_site_use_smart_compare"
         android:defaultValue="true"
         android:title="Use Smart Compare"

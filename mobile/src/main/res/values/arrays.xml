@@ -4,7 +4,7 @@
         <item name="http">HTTP</item>
         <item name="https">HTTPS</item>
         <item name="ftp">FTP</item>
-        <item name="file">File</item>
+        <item name="file">File (NOT IMPLEMENTED)</item>
     </string-array>
 
     <string-array name="protocolValues">
@@ -15,7 +15,7 @@
     </string-array>
     <string-array name="syncMethods">
         <item name="sync">Sync Adapter</item>
-        <item name="alarm">Alarm</item>
+        <item name="alarm">Alarm (NOT IMPLEMENTED)</item>
     </string-array>
     <string-array name="syncMethodValues">
         <item name="sync">sync</item>
@@ -23,7 +23,7 @@
     </string-array>
     <string-array name="syncTypes">
         <item name="elapsed_time">Elapsed Time</item>
-        <item name="fixed_time">Fixed Time</item>
+        <item name="fixed_time">Fixed Time (NOT IMPLEMENTED)</item>
     </string-array>
     <string-array name="syncTypeValues">
         <item name="elapsed_time">elapsed_time</item>
