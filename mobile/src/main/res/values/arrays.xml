@@ -15,7 +15,7 @@
     </string-array>
     <string-array name="syncMethods">
         <item name="sync">Sync Adapter</item>
-        <item name="alarm">Alarm (NOT IMPLEMENTED)</item>
+        <item name="alarm">Alarm</item>
     </string-array>
     <string-array name="syncMethodValues">
         <item name="sync">sync</item>

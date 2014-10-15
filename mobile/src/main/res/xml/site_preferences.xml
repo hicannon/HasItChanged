@@ -48,7 +48,7 @@
         android:summary="(Recommended) Saves Battery by having less wakeups.\nAllows sync to occur slightly off (usually by &lt;2min), thereby allowing it to be combined with other syncs." />
 
    <!-- <comx.detian.hasitchanged.TimePreference
-        android:key="pref_site_sync_time"
+        android:key="pref_site_sync_time_fixed"
         android:title="Timeframe"/>-->
 
    <CheckBoxPreference

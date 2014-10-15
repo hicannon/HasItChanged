@@ -61,6 +61,7 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         findPreference("pref_site_url").setSummary(pref.getString("pref_site_url", "EX: google.com"));
         findPreference("pref_site_protocol").setSummary(pref.getString("pref_site_protocol", "EX: HTTP"));
         findPreference("pref_site_sync_method").setSummary(pref.getString("pref_site_sync_method", "EX: SYNC"));
+        findPreference("pref_site_sync_allow_inexact").setEnabled(!pref.getString("pref_site_sync_method", null).equals("sync"));
     }
 
     @Override
@@ -86,8 +87,8 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: HTTP"));
         }else if (key.equals("pref_site_sync_method")){
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: SYNC"));
-        }else if (key.equals("pref_site_sync_method")){
-            ((CheckBoxPreference) findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
+            (findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
+            //sharedPreferences.edit().putBoolean("pref_site_allow_inexact", true);
         }
     }
     /*@Override
