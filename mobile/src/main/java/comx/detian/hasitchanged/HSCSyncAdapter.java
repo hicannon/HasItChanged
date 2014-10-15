@@ -47,32 +47,28 @@ import java.util.LinkedHashMap;
 import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
-    Gson gson;
-    int numMessages = 0;
+    static int numMessages = 0;
 
     public HSCSyncAdapter(Context context, boolean autoInitialize){
         super(context, autoInitialize);
-
-        initialize();
     }
 
     public HSCSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs){
         super(context, autoInitialize, allowParallelSyncs);
-
-        initialize();
-    }
-
-    private void initialize(){
-        gson= new GsonBuilder().create();
     }
 
     @Override
-    public void onPerformSync(Account account, Bundle bundle, String s, final ContentProviderClient contentProviderClient, SyncResult syncResult) {
-        numMessages = 0;
+    public void onPerformSync(Account account, Bundle bundle, String authority, ContentProviderClient contentProviderClient, SyncResult syncResult) {
         Log.d("Sync: onPerform", "called");
+        performSyncNow(getContext(), bundle, contentProviderClient);
+    }
+
+    public synchronized static void performSyncNow(Context context, Bundle bundle, final ContentProviderClient contentProviderClient) {
+        numMessages = 0;
+        Gson gson = new GsonBuilder().create();
 
         ConnectivityManager cm =
-                (ConnectivityManager)getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         if (activeNetwork==null || !activeNetwork.isConnectedOrConnecting()){
@@ -96,7 +92,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             while (cursor.moveToNext()){
                 long id = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
                 Log.d("SyncAdapter: onPerform", "Loading preference " + HSCMain.PREFERENCE_PREFIX + id);
-                SharedPreferences sitePreference = getContext().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+id, Context.MODE_MULTI_PROCESS);
+                SharedPreferences sitePreference = context.getSharedPreferences(HSCMain.PREFERENCE_PREFIX + id, Context.MODE_MULTI_PROCESS);
 
                 /*//Keep track of data to calculate time to next sync
                 if (sitePreference.getString("pref_sync_method", "sync").equals("sync")) {
@@ -153,7 +149,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 if (response.responseCode==200) {
                     if (response.payload == null) {
-                        //TODO log/handle this error, handle unchanged
+                        //TODO log/handle this error
                         Log.e("SyncAdapter: " + url, "Response is 200 but payload is null");
                         continue;
                     }
@@ -175,7 +171,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     int hashCode = data.hashCode();
 
                     if (lastHash != hashCode) {
-                        createNotification(url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
+                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
 
                         updateValues.put("HASH", hashCode);
                         if (response.eTag != null)
@@ -191,7 +187,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 }else{
                     history.put(System.currentTimeMillis(), "O"+response.responseCode);
                     if (response.responseCode!=304){
-                        createNotification(url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
+                        createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
                     }
                 }
 
@@ -209,10 +205,10 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
             }
             cursor.close();
-
             //Update the UI
+            //TODO change notification mechanism
             Intent intent = new Intent("comx.detian.hasitchanged.SYNC_COMPLETE");
-            getContext().sendBroadcast(intent);
+            context.sendBroadcast(intent);
 
             /*//Update next sync interval
             long nextSync = HSCMain.calculateTimeToTrigger(targetTimes, syncTimes) / 1000; // in seconds
@@ -221,7 +217,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             ContentResolver.addPeriodicSync(((AccountManager) getContext().getSystemService(Context.ACCOUNT_SERVICE)).getAccountsByType("HSC.comx")[0], HSCMain.AUTHORITY, new Bundle(), nextSync);*/
 
             //Schedule next sync
-            HSCMain.updateNextSyncTime(getContext());
+            HSCMain.updateNextSyncTime(context);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -320,8 +316,8 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         return out.toByteArray();
     }
 
-    private void createNotification(String title, String content, byte[] icon) {
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this.getContext())
+    private static void createNotification(Context context, String title, String content, byte[] icon) {
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setSmallIcon(R.drawable.ic_launcher)
@@ -329,13 +325,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         if (icon!=null)
                 mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
 
-        Intent intent = new Intent(this.getContext(), HSCMain.class);
+        Intent intent = new Intent(context, HSCMain.class);
 
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
         // This ensures that navigating backward from the Activity leads out of
         // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.getContext());
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         // Adds the back stack for the Intent (but not the Intent itself)
         stackBuilder.addParentStack(HSCMain.class);
         // Adds the Intent that starts the Activity to the top of the stack
@@ -347,7 +343,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 );
         mBuilder.setContentIntent(resultPendingIntent);
         NotificationManager mNotificationManager =
-                (NotificationManager) this.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
         mNotificationManager.notify(42, mBuilder.build());
     }

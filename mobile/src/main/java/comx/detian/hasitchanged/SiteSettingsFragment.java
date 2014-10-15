@@ -88,7 +88,9 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         }else if (key.equals("pref_site_sync_method")){
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: SYNC"));
             (findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
-            //sharedPreferences.edit().putBoolean("pref_site_allow_inexact", true);
+            if (sharedPreferences.getString("key", "sync").equals("sync")){
+                sharedPreferences.edit().putBoolean("pref_site_sync_allow_inexact", true).apply();
+            }
         }
     }
     /*@Override

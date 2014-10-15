@@ -8,7 +8,7 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.FragmentManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -36,6 +36,29 @@ public class HSCMain extends Activity
     static final SimpleDateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
     static final String PREFERENCE_PREFIX = "HSCPREFERENCE.";
     private static Account mAccount = null;
+    private static PendingIntent exactSyncIntent = null;
+    private static PendingIntent inexactSyncIntent = null;
+
+    //TODO figure out why getBroadcast is returning different PendingIntents, current is workaround
+    public static PendingIntent getExactSyncIntent(Context context) {
+        if (exactSyncIntent==null){
+            exactSyncIntent = PendingIntent.getBroadcast(context, 1, new Intent(context, HSCAlarmSync.class), PendingIntent.FLAG_CANCEL_CURRENT);
+        }
+        return exactSyncIntent;
+    }
+
+    public static PendingIntent getInExactSyncIntent(Context context) {
+        if (inexactSyncIntent==null){
+            inexactSyncIntent = PendingIntent.getBroadcast(context, 2, new Intent(context, HSCAlarmSync.class), PendingIntent.FLAG_CANCEL_CURRENT);
+        }
+        return inexactSyncIntent;
+    }
+
+    /*public static Intent getInexactIntent() {
+        return inexactIntent;
+    }
+
+    private static Intent inexactIntent;*/
     ContentResolver mResolver;
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -129,6 +152,11 @@ public class HSCMain extends Activity
             elapsedTime = targetTime;
         }
 
+        if (BuildConfig.DEBUG && elapsedTime<0){
+            throw new RuntimeException("ElapsedTime" + lastSyncTime + " ::: " + df.format(new Date()));
+        }
+
+
         long timeDifference = targetTime - elapsedTime;
 
         Log.d("CalcFuture", " Item has passed " + elapsedTime + " on its way to " + targetTime);
@@ -143,13 +171,13 @@ public class HSCMain extends Activity
      * @param context the application context
      * @param idToSync 0 to force sync all, -1 to only sync those necessary; otherwise sync idToSync
      */
-    static void requestSyncNow(Context context, long idToSync) {
-        if (ContentResolver.isSyncPending(HSCMain.getAccount(context), AUTHORITY) ||
+    static void requestSyncNow(final Context context, long idToSync) {
+        /*if (ContentResolver.isSyncPending(HSCMain.getAccount(context), AUTHORITY) ||
                 ContentResolver.isSyncActive(HSCMain.getAccount(context), AUTHORITY)) {
             Log.d("SYNC: Manual", "Sync pending, cancelling");
             ContentResolver.cancelSync(HSCMain.getAccount(context), AUTHORITY);
-        }
-        Bundle params = new Bundle();
+        }*/
+        final Bundle params = new Bundle();
         params.putBoolean(
                 ContentResolver.SYNC_EXTRAS_MANUAL, true);
         params.putBoolean(
@@ -161,11 +189,20 @@ public class HSCMain extends Activity
             params.putBoolean("FORCE_SYNC_" + idToSync, true);
             Toast.makeText(context, "Checking this for Changes", Toast.LENGTH_SHORT).show();
         }
-        ContentResolver.requestSync(HSCMain.getAccount(context), AUTHORITY, params);
+        //ContentResolver.requestSync(HSCMain.getAccount(context), AUTHORITY, params);
+        //TODO consider using AsyncTask instead
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ContentProviderClient client = context.getContentResolver().acquireContentProviderClient(HSCMain.AUTHORITY);
+                HSCSyncAdapter.performSyncNow(context, params, client);
+                client.release();
+            }
+        }).start();
     }
 
     /**
-     * Returns the next wakeup in seconds
+     * Returns the next wakeup in milliseconds
      * @param context
      * @param methodToCheck
      * @param inexact
@@ -189,7 +226,8 @@ public class HSCMain extends Activity
             if (sp.getString("pref_site_sync_method", null).equals(methodToCheck)
                     && sp.getString("pref_site_sync_type", null).equals("elapsed_time")
                     && sp.getBoolean("pref_site_sync_allow_inexact", true) == inexact) {
-                if (!sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
+                if (sp.getString("pref_site_url", "").length()!=0
+                        &&!sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
                     targetTimes.add(sp.getString("pref_site_sync_time_elapsed", "never"));
                     //System.out.println(methodToCheck+ cursor.getString(DatabaseOH.COLUMNS.URL.ordinal()));
                     syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
@@ -198,9 +236,9 @@ public class HSCMain extends Activity
         }
         cursor.close();
 
-        long nextSync = calculateTimeToTrigger(targetTimes, syncTimes) / 1000; // in seconds
+        long nextSync = calculateTimeToTrigger(targetTimes, syncTimes);
         Log.d("CalcFuture", methodToCheck + inexact + "Calculated sync for " + nextSync + " seconds in the future");
-        nextSync = nextSync < 0 ? 1 : nextSync;
+        nextSync = nextSync <= 0 ? 1 : nextSync;
 
         return nextSync;
     }
@@ -210,6 +248,7 @@ public class HSCMain extends Activity
         ContentResolver.removePeriodicSync(getAccount(context), AUTHORITY, new Bundle());
         long nextSyncTime = getNextSyncTime(context, "sync", true);
         if (nextSyncTime != Long.MAX_VALUE) {
+            nextSyncTime/=1000; //Sync needs to be in seconds
             //Prevent syncs from being too close together
             nextSyncTime = nextSyncTime < 60 ? 120 : nextSyncTime;
             ContentResolver.addPeriodicSync(getAccount(context), AUTHORITY, new Bundle(), nextSyncTime);
@@ -218,29 +257,23 @@ public class HSCMain extends Activity
         //TODO check to make sure can schedule the same PendingIntent multiple times (same IntentSender?)
         //TODO handle per url with independent alarms
         AlarmManager alarmMgr = (AlarmManager) context.getSystemService(ALARM_SERVICE);
-        PendingIntent syncIntent = PendingIntent.getBroadcast(context, 0, new Intent(context, new BroadcastReceiver() {
 
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d("SYNC_STATUS", "Wakeup from alarm");
-                requestSyncNow(context.getApplicationContext(), -1);
-            }
-        }.getClass()), 0);
-
-        alarmMgr.cancel(syncIntent);
-        long nextExactAlarmTime = getNextSyncTime(context, "alarm", false) * 1000;
+        //PendingIntent syncIntent = PendingIntent.getBroadcast(context, 1, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
+        alarmMgr.cancel(getExactSyncIntent(context));
+        long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-                alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, nextExactAlarmTime, syncIntent);
-            else
-                alarmMgr.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, nextExactAlarmTime, syncIntent);
-        }
-        long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true) * 1000;
-        if (nextInexactAlarmTime != Long.MAX_VALUE) {
-            alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, nextInexactAlarmTime, syncIntent);
+            alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
+            Log.d("SYNC_STATUS", "Setting exact for "+nextExactAlarmTime+" millis" + getExactSyncIntent(context));
         }
 
-        Log.d("SYNC_STATUS: ", nextSyncTime + " " + (nextExactAlarmTime/1000) + " " + (nextInexactAlarmTime/1000));
+        //PendingIntent inexactSyncIntent = PendingIntent.getBroadcast(context, 2, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
+        alarmMgr.cancel(getInExactSyncIntent(context));
+        long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true);
+        if (nextInexactAlarmTime != Long.MAX_VALUE) {
+            alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextInexactAlarmTime, getInExactSyncIntent(context));
+        }
+
+        Log.d("SYNC_STATUS: ", (nextSyncTime==Long.MAX_VALUE?"NEVER":nextSyncTime) + " " + (nextExactAlarmTime==Long.MAX_VALUE?"NEVER":nextExactAlarmTime) + " " + (nextInexactAlarmTime==Long.MAX_VALUE?"NEVER":nextInexactAlarmTime));
     }
 
     public static Account CreateSyncAccount(Context context) {

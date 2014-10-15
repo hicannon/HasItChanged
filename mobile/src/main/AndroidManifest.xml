@@ -64,6 +64,7 @@
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
         </service>
+        <receiver android:name=".HSCAlarmSync" android:enabled="true" />
     </application>
 
 </manifest>
