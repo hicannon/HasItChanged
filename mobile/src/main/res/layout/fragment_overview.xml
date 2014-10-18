@@ -36,13 +36,13 @@
             />
     </LinearLayout>
 
-    <ListView xmlns:android="http://schemas.android.com/apk/res/android"
+    <android.support.v7.widget.RecyclerView
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/history"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@id/history_buttons"
-        android:choiceMode="none"
+        android:scrollbars="vertical"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="2dp"
         android:background="@android:color/white"

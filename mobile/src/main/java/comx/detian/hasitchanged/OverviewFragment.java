@@ -9,6 +9,8 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +37,7 @@ public class OverviewFragment extends Fragment {
 
     //private OnFragmentInteractionListener mListener;
 
-    private ListView historyView;
+    private RecyclerView historyView;
     private HistoryAdapter historyAdapter;
     private BroadcastReceiver receiver;
 
@@ -78,7 +80,8 @@ public class OverviewFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View out =  inflater.inflate(R.layout.fragment_overview, container, false);
-        historyView = (ListView) out.findViewById(R.id.history);
+        historyView = (RecyclerView) out.findViewById(R.id.history);
+        historyView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true));
         historyAdapter = new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         historyView.setAdapter(historyAdapter);
 
@@ -89,8 +92,9 @@ public class OverviewFragment extends Fragment {
     private void updateContent(){
         historyAdapter.clear();
         historyAdapter.addAllFromCurosr(getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
-        historyAdapter.notifyDataSetChanged();
-        historyView.invalidate();
+        //historyAdapter.noti
+        //historyAdapter.notifyDataSetChanged();
+        //historyView.invalidate();
         Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
     }
 

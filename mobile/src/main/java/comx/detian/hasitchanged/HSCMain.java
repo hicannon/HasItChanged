@@ -220,7 +220,7 @@ public class HSCMain extends Activity
         while (cursor.moveToNext()) {
             long siteId = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
 
-            //for (int i = 1; i<mAdapter.getCount(); i++) {
+            //for (int i = 1; i<mAdapter.getItemCount(); i++) {
             //long siteId = mAdapter.getItemId(i);
             SharedPreferences sp = context.getSharedPreferences(PREFERENCE_PREFIX + siteId, MODE_MULTI_PROCESS);
             if (sp.getString("pref_site_sync_method", null).equals(methodToCheck)

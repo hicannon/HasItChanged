@@ -5,10 +5,11 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,13 +17,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class HistoryAdapter extends BaseAdapter implements View.OnClickListener {
+public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> implements View.OnClickListener {
     static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy - HH:mm:SS");
     boolean collapse = true;
 
@@ -54,6 +56,9 @@ public class HistoryAdapter extends BaseAdapter implements View.OnClickListener 
     }
 
     synchronized void addAllFromCurosr(Cursor cursor) {
+        ArrayList<Integer> changeList = new ArrayList<Integer>();
+        ArrayList<Long> addList = new ArrayList<Long>();
+
         this.cursor = cursor;
         cursorStart = cursor.getPosition();
 
@@ -77,7 +82,13 @@ public class HistoryAdapter extends BaseAdapter implements View.OnClickListener 
                             firstTimeStamp = timeStamp;
                         }
                         if (!lastStatus.equals(history.get(timeStamp))) {
-                            data.put(lastTimeStamp, url + "\t" + lastStatus + "\t" + firstTimeStamp + "\t" + count);
+                            String lastVal = data.get(lastTimeStamp);
+                            String status = data.put(lastTimeStamp, url + "\t" + lastStatus + "\t" + firstTimeStamp + "\t" + count);
+                            if (status==null){
+                                addList.add(lastTimeStamp);
+                            }else if (!data.get(lastTimeStamp).equals(lastVal)){ //lastval cannot be null here
+                                changeList.add(Arrays.binarySearch(keys, lastTimeStamp));
+                            }
                             firstTimeStamp = timeStamp;
                             //lastStatus = history.get(timeStamp);
                             count = 0;
@@ -87,11 +98,24 @@ public class HistoryAdapter extends BaseAdapter implements View.OnClickListener 
                         lastStatus = history.get(timeStamp);
                         count++;
                     }else{
-                        data.put(timeStamp, url+"\t"+ history.get(timeStamp) +"\t"+1234+"\t"+1);
+                        String lastVal = data.get(lastTimeStamp);
+                        String status = data.put(timeStamp, url+"\t"+ history.get(timeStamp) +"\t"+1234+"\t"+1);
+                        if (status==null){
+                            addList.add(lastTimeStamp);
+                        }else if (!data.get(lastTimeStamp).equals(lastVal)){ //lastval cannot be null here
+                            changeList.add(Arrays.binarySearch(keys, lastTimeStamp));
+                        }
                     }
                 }
-                if (collapse)
-                    data.put(lastTimeStamp, url+"\t"+ lastStatus+"\t"+firstTimeStamp+"\t"+count);
+                if (collapse) {
+                    String lastVal = data.get(lastTimeStamp);
+                    String status = data.put(lastTimeStamp, url + "\t" + lastStatus + "\t" + firstTimeStamp + "\t" + count);
+                    if (status==null){
+                        addList.add(lastTimeStamp);
+                    }else if (!data.get(lastTimeStamp).equals(lastVal)){ //lastval cannot be null here
+                        changeList.add(Arrays.binarySearch(keys, lastTimeStamp));
+                    }
+                }
             }
             byte[] rawFavicon = cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal());
             if (rawFavicon!=null && rawFavicon.length!=0) {
@@ -101,31 +125,101 @@ public class HistoryAdapter extends BaseAdapter implements View.OnClickListener 
 
         keys = data.keySet().toArray();
         values = data.values().toArray();
+
+        //Notify the changes
+        for (int i : changeList){
+            notifyItemChanged(i);
+            Log.d("HistoryAdapter", i + " has changed");
+        }
+
+        for (long i : addList){
+            notifyItemChanged(Arrays.binarySearch(keys, i));
+            Log.d("HistoryAdapter", i + " has been added");
+        }
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         return data.size();
     }
 
-    @Override
+    //@Override
     public Object getItem(int i) {
-        i = getCount()-i-1;
+        //i = getItemCount()-i-1;
         return values[i];
     }
 
     public Object getKey(int i) {
-        i = getCount()-i-1;
+        //i = getItemCount()-i-1;
         return keys[i];
     }
 
     @Override
-    public long getItemId(int i) {
-        i = getCount()-i-1;
-        return i;
+    public HistoryItemViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflater.inflate(R.layout.history_item,viewGroup, false);
+        ImageView favicon = (ImageView) v.findViewById(R.id.history_icon);
+        TextView status = (TextView) v.findViewById(R.id.history_status);
+        TextView title = (TextView) v.findViewById(R.id.history_title);
+        TextView description = (TextView) v.findViewById(R.id.history_description);
+
+        HistoryItemViewHolder out = new HistoryItemViewHolder(v, title, description, status, favicon);
+
+        return out;
     }
 
     @Override
+    public void onBindViewHolder(HistoryItemViewHolder viewHolder, int i) {
+        String[] raw = ((String)getItem(i)).split("\t");
+        String url = raw[0];
+        String statusCode = raw[1].substring(1);
+        Long firstTimeStamp = Long.parseLong(raw[2]);
+        int count = Integer.parseInt(raw[3]);
+
+        boolean changed = raw[1].charAt(0)=='C';
+
+        if (favicons.containsKey(url)){
+            viewHolder.mIcon.setImageBitmap(favicons.get(url));
+        }
+        viewHolder.mTitle.setText(url);
+        viewHolder.mDescription.setText( (count==1 ? "" : count + "X from\n"+dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date((Long)getKey(i))));
+
+        switch(Integer.parseInt(statusCode)){
+            case 200:
+                //status.setImageResource(R.drawable.status_ok);
+                viewHolder.mStatus.setTextColor(Color.GREEN);
+                break;
+            case 304:
+                //status.setImageResource(R.drawable.status_304);
+                changed = false;
+                viewHolder.mStatus.setTextColor(Color.BLACK);
+                break;
+            case SiteResponse.IOEXCEPTION:
+                viewHolder.mStatus.setTextColor(Color.RED);
+                statusCode = "DNS";
+                break;
+            case SiteResponse.MALFORMEDURL:
+                viewHolder.mStatus.setTextColor(Color.RED);
+                statusCode = "URL";
+                break;
+            default: break;
+        }
+        viewHolder.mStatus.setText(statusCode);
+
+        if (changed){
+            viewHolder.mV.setBackgroundColor(Color.parseColor("#dcbddf"));;
+        }else{
+            viewHolder.mV.setBackgroundColor(Color.WHITE);
+        }
+    }
+
+    @Override
+    public long getItemId(int i) {
+        i = getItemCount()-i-1;
+        return i;
+    }
+
+    /*@Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         View out;
         if (view!=null){
@@ -180,7 +274,7 @@ public class HistoryAdapter extends BaseAdapter implements View.OnClickListener 
             out.setBackgroundColor(Color.WHITE);
         }
         return out;
-    }
+    }*/
 
     @Override
     public void onClick(View view) {
