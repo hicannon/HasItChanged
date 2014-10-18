@@ -4,6 +4,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -85,9 +86,19 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         } else if (key.equals("pref_site_sync_method")) {
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: SYNC"));
             (findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
-            if (sharedPreferences.getString("key", "sync").equals("sync")) {
+            if (sharedPreferences.getString("key", "sync").equals("sync") && !sharedPreferences.getBoolean("pref_site_sync_allow_inexact", false)) {
                 sharedPreferences.edit().putBoolean("pref_site_sync_allow_inexact", true).apply();
+                ((CheckBoxPreference)findPreference("pref_site_sync_allow_inexact")).setChecked(true);
+            }else{
+                //Changing allow_inexact triggers this method again,so only call updateNextSyncTime here otherwise
+                HSCMain.updateNextSyncTime(getActivity());
             }
+        }else if (key.equals("pref_site_sync_time_elapsed")) {
+            //if (sharedPreferences.getString("pref_site_sync_type", "elapsed_time").equals("elapsed_time")) {
+                HSCMain.updateNextSyncTime(getActivity());
+            //}
+        }else if (key.equals("pref_site_sync_allow_inexact")){
+            HSCMain.updateNextSyncTime(getActivity());
         }
     }
 

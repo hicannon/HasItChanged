@@ -403,11 +403,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), updateValues, "_id=?", new String[]{"" + mCurrentId});
 
             getLoaderManager().restartLoader(0, null, this);
-        } else if (key.equals("pref_site_sync_time_elapsed")) {
-            if (sharedPreferences.getString("pref_site_sync_type", "elapsed_time").equals("elapsed_time")) {
-                System.out.println("aaaaaaaaa");
-                HSCMain.updateNextSyncTime(getActivity());
-            }
         }
     }
 
