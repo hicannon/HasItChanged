@@ -78,8 +78,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     SimpleCursorAdapter mAdapter;
     private BroadcastReceiver receiver;
-    //private AlarmManager alarmMgr;
-    //private PendingIntent syncIntent;
 
     public NavigationDrawerFragment() {
     }
@@ -104,7 +102,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     }
 
     @Override
-    public void onActivityCreated (Bundle savedInstanceState) {
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
@@ -115,7 +113,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         mDrawerListView = (ListView) inflater.inflate(
                 R.layout.fragment_navigation_drawer, container, false);
         mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -131,23 +129,23 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                 new String[]{"URL", "FAVICON"},
                 new int[]{R.id.siteURL, R.id.siteIcon}, 0);
 
-        SimpleCursorAdapter.ViewBinder viewBinder = new SimpleCursorAdapter.ViewBinder(){
+        SimpleCursorAdapter.ViewBinder viewBinder = new SimpleCursorAdapter.ViewBinder() {
 
             @Override
             public boolean setViewValue(View view, Cursor c, int cIndex) {
-                if (view instanceof ImageView){
+                if (view instanceof ImageView) {
                     ImageView imageView = (ImageView) view;
                     byte[] raw = c.getBlob(cIndex);
-                    if (raw!=null)
+                    if (raw != null)
                         imageView.setImageBitmap(BitmapFactory.decodeByteArray(raw, 0, raw.length));
-                    else{
+                    else {
                         imageView.setImageResource(android.R.drawable.ic_menu_view);
                     }
                     return true;
-                }else{
+                } else {
                     TextView textView = (TextView) view;
                     String text = c.getString(cIndex);
-                    if (text.trim().length()==0){
+                    if (text.trim().length() == 0) {
                         text = "BLANK";
                     }
                     textView.setText(text);
@@ -156,15 +154,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             }
         };
         mAdapter.setViewBinder(viewBinder);
-        /*mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                }));*/
         mDrawerListView.setAdapter(mAdapter);
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 
@@ -261,14 +250,14 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     }
 
     private void selectItem(int position, long id) {
-        Log.d("NavigationDrawer: ", "select item "+ position + " " + id);
+        Log.d("NavigationDrawer: ", "select item " + position + " " + id);
 
         //A listener that updates the URL displayed in the Navigation Drawer immediately if it is changed
-        SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+id, Context.MODE_MULTI_PROCESS);
+        SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + id, Context.MODE_MULTI_PROCESS);
         targetPref.registerOnSharedPreferenceChangeListener(this);
 
         //Remove/add the delete option depending on screen
-        if (id==0 || mCurrentId==0){
+        if (id == 0 || mCurrentId == 0) {
             getActivity().invalidateOptionsMenu();
         }
 
@@ -324,13 +313,13 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         if (mDrawerLayout != null && isDrawerOpen()) {
             inflater.inflate(R.menu.global, menu);
             showGlobalContextActionBar();
-        }else{
+        } else {
             //if (menu.findItem(R.id.delete_site)!=null){
-                if (mCurrentId==0){
-                    menu.findItem(R.id.delete_site).setVisible(false);
-                }else{
-                    menu.findItem(R.id.delete_site).setVisible(true);
-                }
+            if (mCurrentId == 0) {
+                menu.findItem(R.id.delete_site).setVisible(false);
+            } else {
+                menu.findItem(R.id.delete_site).setVisible(true);
+            }
             //}
         }
         super.onCreateOptionsMenu(menu, inflater);
@@ -345,12 +334,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
 
         if (item.getItemId() == R.id.manual_sync) {
-            HSCMain.requestSyncNow(((HSCMain) getActivity()), mCurrentId);
-            //mAdapter.changeCursor(getSitesCursor());
-            //getLoaderManager().restartLoader(0, null, this);
-            //mAdapter.notifyDataSetChanged();
+            HSCMain.requestSyncNow(getActivity(), mCurrentId, true);
             return true;
-        }else if (item.getItemId() == R.id.add_site){
+        } else if (item.getItemId() == R.id.add_site) {
             ContentValues values = new ContentValues();
             values.put("URL", "");
             Uri uri = getActivity().getContentResolver().insert(DatabaseOH.getBaseURI(), values);
@@ -359,23 +345,21 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             //TODO NavigationDrawer will not upddate properly if using LoadManager due to timing
             //getLoaderManager().restartLoader(0, null ,this);
             //mDrawerListView.postInvalidate();
-            selectItem(mAdapter.getCount()-1, ContentUris.parseId(uri));
+            selectItem(mAdapter.getCount() - 1, ContentUris.parseId(uri));
             return true;
-        }else if (item.getItemId() == R.id.delete_site){
+        } else if (item.getItemId() == R.id.delete_site) {
             Log.d("NavigationDrawer: ", "Delete");
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            final SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX+mCurrentId, Context.MODE_MULTI_PROCESS);
-            builder.setTitle("Delete this URL?").setMessage(targetPref.getString("pref_site_url", null) +" will be deleted.");
+            final SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + mCurrentId, Context.MODE_MULTI_PROCESS);
+            builder.setTitle("Delete this URL?").setMessage(targetPref.getString("pref_site_url", null) + " will be deleted.");
             builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                 @SuppressLint("CommitPrefEdits")
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    getActivity().getContentResolver().delete(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), "_id=?", new String[]{mCurrentId+""});
+                    getActivity().getContentResolver().delete(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), "_id=?", new String[]{mCurrentId + ""});
                     targetPref.edit().clear().commit();
                     //TODO delete the file too
                     getLoaderManager().restartLoader(0, null, NavigationDrawerFragment.this);
-                    //mAdapter.changeCursor(getSitesCursor());
-                    //mAdapter.notifyDataSetChanged();
                     selectItem(0, 0); //Switch to overview
                     HSCMain.updateNextSyncTime(getActivity());
                 }
@@ -413,16 +397,14 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Log.d("NavigationDrawer: ", "PreferenceChange triggered");
-        if (key.equals("pref_site_url")){
+        if (key.equals("pref_site_url")) {
             ContentValues updateValues = new ContentValues();
             updateValues.put("URL", sharedPreferences.getString("pref_site_url", ""));
-            getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), updateValues, "_id=?", new String[]{""+mCurrentId});
+            getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), updateValues, "_id=?", new String[]{"" + mCurrentId});
 
             getLoaderManager().restartLoader(0, null, this);
-            //mAdapter.changeCursor(getSitesCursor());
-            //mAdapter.notifyDataSetChanged();
-        }else if (key.equals("pref_site_sync_time_elapsed")){
-            if (sharedPreferences.getString("pref_site_sync_type", "elapsed_time").equals("elapsed_time")){
+        } else if (key.equals("pref_site_sync_time_elapsed")) {
+            if (sharedPreferences.getString("pref_site_sync_type", "elapsed_time").equals("elapsed_time")) {
                 System.out.println("aaaaaaaaa");
                 HSCMain.updateNextSyncTime(getActivity());
             }

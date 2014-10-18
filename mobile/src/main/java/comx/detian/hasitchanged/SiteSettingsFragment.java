@@ -4,7 +4,6 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -19,9 +18,6 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
     private long siteId;
 
     private SharedPreferences pref;
-    //private String mParam2;
-
-    //private OnFragmentInteractionListener mListener;
 
     /**
      * Use this factory method to create a new instance of
@@ -39,6 +35,7 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         fragment.setArguments(args);
         return fragment;
     }
+
     public SiteSettingsFragment() {
         // Required empty public constructor
     }
@@ -52,7 +49,7 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
 
         //Cursor cursor = getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null);
         Log.d("SiteSettings:", "Loading " + HSCMain.PREFERENCE_PREFIX + siteId);
-        this.getPreferenceManager().setSharedPreferencesName(HSCMain.PREFERENCE_PREFIX+ siteId);
+        this.getPreferenceManager().setSharedPreferencesName(HSCMain.PREFERENCE_PREFIX + siteId);
         addPreferencesFromResource(R.xml.site_preferences);
         PreferenceManager.setDefaultValues(getActivity(), R.xml.site_preferences, false);
 
@@ -65,7 +62,7 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
 
         getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
@@ -75,45 +72,23 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
     private void saveSite(SharedPreferences pref) {
         ContentValues updateValues = new ContentValues();
         updateValues.put("URL", pref.getString("pref_site_url", null));
-        getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), siteId), updateValues, "_id=?", new String[]{""+siteId});
+        getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), siteId), updateValues, "_id=?", new String[]{"" + siteId});
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Log.d("SiteSettings: ", "PreferenceChange triggered");
-        if (key.equals("pref_site_url")){
+        if (key.equals("pref_site_url")) {
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: google.com"));
-        }else if (key.equals("pref_site_protocol")){
+        } else if (key.equals("pref_site_protocol")) {
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: HTTP"));
-        }else if (key.equals("pref_site_sync_method")){
+        } else if (key.equals("pref_site_sync_method")) {
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: SYNC"));
             (findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
-            if (sharedPreferences.getString("key", "sync").equals("sync")){
+            if (sharedPreferences.getString("key", "sync").equals("sync")) {
                 sharedPreferences.edit().putBoolean("pref_site_sync_allow_inexact", true).apply();
             }
         }
     }
-    /*@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_site_settings, container, false);
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-   /* public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
-    */
 
 }

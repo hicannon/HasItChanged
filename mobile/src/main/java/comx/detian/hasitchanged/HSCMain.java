@@ -41,14 +41,14 @@ public class HSCMain extends Activity
 
     //TODO figure out why getBroadcast is returning different PendingIntents, current is workaround
     public static PendingIntent getExactSyncIntent(Context context) {
-        if (exactSyncIntent==null){
+        if (exactSyncIntent == null) {
             exactSyncIntent = PendingIntent.getBroadcast(context, 1, new Intent(context, HSCAlarmSync.class), PendingIntent.FLAG_CANCEL_CURRENT);
         }
         return exactSyncIntent;
     }
 
     public static PendingIntent getInExactSyncIntent(Context context) {
-        if (inexactSyncIntent==null){
+        if (inexactSyncIntent == null) {
             inexactSyncIntent = PendingIntent.getBroadcast(context, 2, new Intent(context, HSCAlarmSync.class), PendingIntent.FLAG_CANCEL_CURRENT);
         }
         return inexactSyncIntent;
@@ -152,7 +152,7 @@ public class HSCMain extends Activity
             elapsedTime = targetTime;
         }
 
-        if (BuildConfig.DEBUG && elapsedTime<0){
+        if (BuildConfig.DEBUG && elapsedTime < 0) {
             throw new RuntimeException("ElapsedTime" + lastSyncTime + " ::: " + df.format(new Date()));
         }
 
@@ -168,10 +168,11 @@ public class HSCMain extends Activity
     /**
      * Request a Sync to the content resolver
      *
-     * @param context the application context
+     * @param context  the application context
      * @param idToSync 0 to force sync all, -1 to only sync those necessary; otherwise sync idToSync
+     * @param  notify whether to display a tost
      */
-    static void requestSyncNow(final Context context, long idToSync) {
+    static void requestSyncNow(final Context context, long idToSync, boolean notify) {
         /*if (ContentResolver.isSyncPending(HSCMain.getAccount(context), AUTHORITY) ||
                 ContentResolver.isSyncActive(HSCMain.getAccount(context), AUTHORITY)) {
             Log.d("SYNC: Manual", "Sync pending, cancelling");
@@ -184,10 +185,12 @@ public class HSCMain extends Activity
                 ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         if (idToSync == 0) {
             params.putBoolean("FORCE_SYNC_ALL", true);
-            Toast.makeText(context, "Checking All for Changes", Toast.LENGTH_SHORT).show();
+            if (notify)
+                Toast.makeText(context, "Checking All for Changes", Toast.LENGTH_SHORT).show();
         } else {
             params.putBoolean("FORCE_SYNC_" + idToSync, true);
-            Toast.makeText(context, "Checking this for Changes", Toast.LENGTH_SHORT).show();
+            if (notify)
+                Toast.makeText(context, "Checking this for Changes", Toast.LENGTH_SHORT).show();
         }
         //ContentResolver.requestSync(HSCMain.getAccount(context), AUTHORITY, params);
         //TODO consider using AsyncTask instead
@@ -203,6 +206,7 @@ public class HSCMain extends Activity
 
     /**
      * Returns the next wakeup in milliseconds
+     *
      * @param context
      * @param methodToCheck
      * @param inexact
@@ -226,8 +230,8 @@ public class HSCMain extends Activity
             if (sp.getString("pref_site_sync_method", null).equals(methodToCheck)
                     && sp.getString("pref_site_sync_type", null).equals("elapsed_time")
                     && sp.getBoolean("pref_site_sync_allow_inexact", true) == inexact) {
-                if (sp.getString("pref_site_url", "").length()!=0
-                        &&!sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
+                if (sp.getString("pref_site_url", "").length() != 0
+                        && !sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
                     targetTimes.add(sp.getString("pref_site_sync_time_elapsed", "never"));
                     //System.out.println(methodToCheck+ cursor.getString(DatabaseOH.COLUMNS.URL.ordinal()));
                     syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
@@ -248,7 +252,7 @@ public class HSCMain extends Activity
         ContentResolver.removePeriodicSync(getAccount(context), AUTHORITY, new Bundle());
         long nextSyncTime = getNextSyncTime(context, "sync", true);
         if (nextSyncTime != Long.MAX_VALUE) {
-            nextSyncTime/=1000; //Sync needs to be in seconds
+            nextSyncTime /= 1000; //Sync needs to be in seconds
             //Prevent syncs from being too close together
             nextSyncTime = nextSyncTime < 60 ? 120 : nextSyncTime;
             ContentResolver.addPeriodicSync(getAccount(context), AUTHORITY, new Bundle(), nextSyncTime);
@@ -263,7 +267,7 @@ public class HSCMain extends Activity
         long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
             alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
-            Log.d("SYNC_STATUS", "Setting exact for "+nextExactAlarmTime+" millis" + getExactSyncIntent(context));
+            Log.d("SYNC_STATUS", "Setting exact for " + nextExactAlarmTime + " millis" + getExactSyncIntent(context));
         }
 
         //PendingIntent inexactSyncIntent = PendingIntent.getBroadcast(context, 2, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
@@ -271,9 +275,10 @@ public class HSCMain extends Activity
         long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true);
         if (nextInexactAlarmTime != Long.MAX_VALUE) {
             alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextInexactAlarmTime, getInExactSyncIntent(context));
+            Log.d("SYNC_STATUS", "Setting inexact for " + nextExactAlarmTime + " millis" + getExactSyncIntent(context));
         }
 
-        Log.d("SYNC_STATUS: ", (nextSyncTime==Long.MAX_VALUE?"NEVER":nextSyncTime) + " " + (nextExactAlarmTime==Long.MAX_VALUE?"NEVER":nextExactAlarmTime) + " " + (nextInexactAlarmTime==Long.MAX_VALUE?"NEVER":nextInexactAlarmTime));
+        Log.d("SYNC_STATUS: ", (nextSyncTime == Long.MAX_VALUE ? "NEVER" : nextSyncTime*1000) + " " + (nextExactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextExactAlarmTime) + " " + (nextInexactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextInexactAlarmTime));
     }
 
     public static Account CreateSyncAccount(Context context) {
@@ -295,15 +300,8 @@ public class HSCMain extends Activity
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = "HSC?";//getTitle();
-
         mResolver = getContentResolver();
-
         ContentResolver.setSyncAutomatically(getAccount(this), AUTHORITY, true);
-
-        Bundle params = new Bundle();
-
-        //ContentResolver.addPeriodicSync(mAccount, AUTHORITY, params, 120);
-
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
 
         // Set up the drawer.

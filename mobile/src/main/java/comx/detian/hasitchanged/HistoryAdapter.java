@@ -39,7 +39,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
     //private Object[] keys;
     //private Object[] values;
 
-    HistoryAdapter (Context context, Cursor c){
+    HistoryAdapter(Context context, Cursor c) {
         data = new IndexedTreeMap<Long, String>();
         favicons = new HashMap<String, Bitmap>();
 
@@ -52,7 +52,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         notifyDataSetChanged();
     }
 
-    void clear(){
+    void clear() {
         data.clear();
         //Probably don't need to clear favicons
     }
@@ -67,17 +67,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         //Skip first dummy
         cursor.moveToNext();
 
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
             String historyRaw = cursor.getString(DatabaseOH.COLUMNS.HISTORY.ordinal());
             String url = cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
-            if (historyRaw==null || historyRaw.length()==0){
+            if (historyRaw == null || historyRaw.length() == 0) {
                 continue;
-            }else{
+            } else {
                 Map<Long, String> history = gson.fromJson(historyRaw, DatabaseOH.historyType);
-                long firstTimeStamp=-1, lastTimeStamp=-1, previousKeyTimeStamp = -1;
+                long firstTimeStamp = -1, lastTimeStamp = -1, previousKeyTimeStamp = -1;
                 String lastStatus = "";
                 int count = 0;
-                for (long timeStamp : history.keySet()){
+                for (long timeStamp : history.keySet()) {
                     if (collapse) {
                         if (lastStatus.length() == 0) {
                             lastStatus = history.get(timeStamp);
@@ -88,27 +88,27 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                             String status = data.put(lastTimeStamp, url + "\t" + lastStatus + "\t" + firstTimeStamp + "\t" + count);
 
                             //Update UI if necessary
-                            if (data.get(lastTimeStamp).equals(lastVal)){
+                            if (data.get(lastTimeStamp).equals(lastVal)) {
                                 //Do nothing, unchanged
-                            }else if (status==null){
+                            } else if (status == null) {
                                 //not previously in map, check to see if this is actually an update to a collapsed entry
-                                if (previousKeyTimeStamp!=-1) {
+                                if (previousKeyTimeStamp != -1) {
                                     int previousIndex = data.keyIndex(previousKeyTimeStamp);
                                     data.remove(previousKeyTimeStamp);
                                     int newIndex = data.keyIndex(lastTimeStamp);
-                                    if (previousIndex==newIndex){
+                                    if (previousIndex == newIndex) {
                                         Log.d("HistoryAdapter", newIndex + " has changed");
                                         notifyItemChanged(mReverse(newIndex));
-                                    }else{
+                                    } else {
                                         Log.d("HistoryAdapter", previousIndex + " has been moved to " + newIndex);
                                         notifyItemMoved(mReverse(previousIndex), mReverse(newIndex));
                                     }
-                                }else{
+                                } else {
                                     //Newly added
                                     Log.d("HistoryAdapter", data.keyIndex(lastTimeStamp) + " has been added");
                                     notifyItemInserted(mReverse(data.keyIndex(lastTimeStamp)));
                                 }
-                            }else{
+                            } else {
                                 Log.d("HistoryAdapter", data.keyIndex(lastTimeStamp) + " has changed");
                                 notifyItemChanged(mReverse(data.keyIndex(lastTimeStamp)));
                             }
@@ -119,16 +119,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                             //continue;
                         }
 
-                        if (data.containsKey(timeStamp)){
+                        if (data.containsKey(timeStamp)) {
                             previousKeyTimeStamp = timeStamp;
                         }
 
                         lastTimeStamp = timeStamp;
                         lastStatus = history.get(timeStamp);
                         count++;
-                    }else{
-                        String status = data.put(timeStamp, url+"\t"+ history.get(timeStamp) +"\t"+1234+"\t"+1);
-                        if (status==null){
+                    } else {
+                        String status = data.put(timeStamp, url + "\t" + history.get(timeStamp) + "\t" + 1234 + "\t" + 1);
+                        if (status == null) {
                             //addList.add(timeStamp);
                             notifyItemInserted(mReverse(data.keyIndex(timeStamp)));
                         }
@@ -140,18 +140,18 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                     String lastVal = data.get(lastTimeStamp);
                     String status = data.put(lastTimeStamp, url + "\t" + lastStatus + "\t" + firstTimeStamp + "\t" + count);
                     //Update UI if necessary
-                    if (data.get(lastTimeStamp).equals(lastVal)){
+                    if (data.get(lastTimeStamp).equals(lastVal)) {
                         //Do nothing, unchanged
-                    }else if (status==null) {
+                    } else if (status == null) {
                         //not previously in map, check to see if this is actually an update to a collapsed entry
                         if (previousKeyTimeStamp != -1) {
                             int previousIndex = data.keyIndex(previousKeyTimeStamp);
                             data.remove(previousKeyTimeStamp);
                             int newIndex = data.keyIndex(lastTimeStamp);
-                            if (previousIndex==newIndex){
+                            if (previousIndex == newIndex) {
                                 Log.d("HistoryAdapter-e", newIndex + " has changed");
                                 notifyItemChanged(mReverse(newIndex));
-                            }else{
+                            } else {
                                 Log.d("HistoryAdapter-e", previousIndex + " has been moved to " + newIndex);
                                 notifyItemMoved(mReverse(previousIndex), mReverse(newIndex));
                                 notifyItemChanged(mReverse(newIndex));
@@ -165,36 +165,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                 }
             }
             byte[] rawFavicon = cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal());
-            if (rawFavicon!=null && rawFavicon.length!=0) {
+            if (rawFavicon != null && rawFavicon.length != 0) {
                 favicons.put(url, BitmapFactory.decodeByteArray(rawFavicon, 0, rawFavicon.length));
             }
         }
-
-        //keys = data.keySet().toArray();
-        //values = data.values().toArray();
-
-        //Notify the changes
-       /* for (int i : changeList){
-            notifyItemChanged(Arrays.binarySearch(keys, i));
-            Log.d("HistoryAdapter", i + " has changed");
-        }
-
-        for (long i : addList){
-            notifyItemInserted(Arrays.binarySearch(keys, i));
-            Log.d("HistoryAdapter", i + " has been added");
-        }*/
-        /*int j = 0;
-        for (int i = 0; i < keys.length; i++){
-            if (newKeys[j]!=newKeys[i]){
-                notify
-            }
-        }*/
-
-        //keys = newKeys;
     }
 
-    protected int mReverse(int i){
-        return reverse ? getItemCount()-i-1 : i;
+    protected int mReverse(int i) {
+        return reverse ? getItemCount() - i - 1 : i;
     }
 
     @Override
@@ -214,7 +192,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
     @Override
     public HistoryItemViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v = inflater.inflate(R.layout.history_item,viewGroup, false);
+        View v = inflater.inflate(R.layout.history_item, viewGroup, false);
         ImageView favicon = (ImageView) v.findViewById(R.id.history_icon);
         TextView status = (TextView) v.findViewById(R.id.history_status);
         TextView title = (TextView) v.findViewById(R.id.history_title);
@@ -231,15 +209,15 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         Long firstTimeStamp = Long.parseLong(raw[2]);
         int count = Integer.parseInt(raw[3]);
 
-        boolean changed = raw[1].charAt(0)=='C';
+        boolean changed = raw[1].charAt(0) == 'C';
 
-        if (favicons.containsKey(url)){
+        if (favicons.containsKey(url)) {
             viewHolder.mIcon.setImageBitmap(favicons.get(url));
         }
         viewHolder.mTitle.setText(url);
-        viewHolder.mDescription.setText( (count==1 ? "" : count + "X from\n"+dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date(getKey(i))));
+        viewHolder.mDescription.setText((count == 1 ? "" : count + "X from\n" + dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date(getKey(i))));
 
-        switch(Integer.parseInt(statusCode)){
+        switch (Integer.parseInt(statusCode)) {
             case 200:
                 //status.setImageResource(R.drawable.status_ok);
                 viewHolder.mStatus.setTextColor(Color.GREEN);
@@ -257,13 +235,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                 viewHolder.mStatus.setTextColor(Color.RED);
                 statusCode = "URL";
                 break;
-            default: break;
+            default:
+                break;
         }
         viewHolder.mStatus.setText(statusCode);
 
-        if (changed){
+        if (changed) {
             viewHolder.mV.setBackgroundColor(Color.parseColor("#dcbddf"));
-        }else{
+        } else {
             viewHolder.mV.setBackgroundColor(Color.WHITE);
         }
     }
@@ -271,80 +250,22 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
     @Override
     public long getItemId(int i) {
         return mReverse(i);
-        //return i;
     }
-
-    /*@Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
-        View out;
-        if (view!=null){
-            out = view;
-        }
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        out = inflater.inflate(R.layout.history_item,viewGroup, false);
-        ImageView favicon = (ImageView) out.findViewById(R.id.history_icon);
-        TextView status = (TextView) out.findViewById(R.id.history_status);
-        TextView title = (TextView) out.findViewById(R.id.history_title);
-        TextView description = (TextView) out.findViewById(R.id.history_description);
-
-        String[] raw = ((String)getItem(i)).split("\t");
-        String url = raw[0];
-        String statusCode = raw[1].substring(1);
-        Long firstTimeStamp = Long.parseLong(raw[2]);
-        int count = Integer.parseInt(raw[3]);
-
-        boolean changed = raw[1].charAt(0)=='C';
-
-        if (favicons.containsKey(url)){
-            favicon.setImageBitmap(favicons.get(url));
-        }
-        title.setText(url);
-        description.setText( (count==1 ? "" : count + "X from\n"+dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date((Long)getKey(i))));
-
-        switch(Integer.parseInt(statusCode)){
-            case 200:
-                //status.setImageResource(R.drawable.status_ok);
-                status.setTextColor(Color.GREEN);
-                break;
-            case 304:
-                //status.setImageResource(R.drawable.status_304);
-                changed = false;
-                status.setTextColor(Color.BLACK);
-                break;
-            case SiteResponse.IOEXCEPTION:
-                status.setTextColor(Color.RED);
-                statusCode = "DNS";
-                break;
-            case SiteResponse.MALFORMEDURL:
-                status.setTextColor(Color.RED);
-                statusCode = "URL";
-                break;
-            default: break;
-        }
-        status.setText(statusCode);
-
-        if (changed){
-            out.setBackgroundColor(Color.parseColor("#dcbddf"));;
-        }else{
-            out.setBackgroundColor(Color.WHITE);
-        }
-        return out;
-    }*/
 
     @Override
     public void onClick(View view) {
-        if (view.getId() == R.id.history_button_collapse){
+        if (view.getId() == R.id.history_button_collapse) {
             collapse = !collapse;
             clear();
             cursor.moveToPosition(cursorStart);
             addAllFromCurosr(cursor);
             notifyDataSetChanged();
-        }else if (view.getId()==R.id.history_button_filter){
+        } else if (view.getId() == R.id.history_button_filter) {
             reverse = !reverse;
-            for (int i = 0; i<getItemCount()/2; i++){
-                notifyItemMoved(i, getItemCount()-i-1);
+            for (int i = 0; i < getItemCount() / 2; i++) {
+                notifyItemMoved(i, getItemCount() - i - 1);
                 //Note not symmetric b/c view acts like queue; items are pushed up
-                notifyItemMoved(getItemCount()-i-2,i);
+                notifyItemMoved(getItemCount() - i - 2, i);
             }
         }
     }

@@ -9,11 +9,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 
-public class HSCProvider extends ContentProvider{
+public class HSCProvider extends ContentProvider {
 
     private SQLiteOpenHelper sqloh;
-
-    private SQLiteDatabase db;
 
     /*private static final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static{
@@ -30,7 +28,7 @@ public class HSCProvider extends ContentProvider{
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor out = sqloh.getReadableDatabase().query("HSC", projection, selection, selectionArgs, null, null, sortOrder);
-        Log.d("PROVIDER: query has "+out.getCount(), uri.toString());
+        Log.d("PROVIDER: query has " + out.getCount(), uri.toString());
         return out;
     }
 

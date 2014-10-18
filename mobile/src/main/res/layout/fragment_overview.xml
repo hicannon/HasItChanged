@@ -10,7 +10,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/history_button_collapse"
@@ -20,8 +20,7 @@
             android:layout_marginLeft="5dip"
             android:layout_marginTop="5dip"
             android:layout_weight=".50"
-            android:text="Collapse/Expand"
-            />
+            android:text="Collapse/Expand" />
 
         <Button
             android:id="@+id/history_button_filter"
@@ -32,12 +31,10 @@
             android:layout_marginRight="5dip"
             android:layout_marginTop="5dip"
             android:layout_weight=".50"
-            android:text="Reverse"
-            />
+            android:text="Reverse" />
     </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        xmlns:tools="http://schemas.android.com/tools"
+    <android.support.v7.widget.RecyclerView xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/history"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"

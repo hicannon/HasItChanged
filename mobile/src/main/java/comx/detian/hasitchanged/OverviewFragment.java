@@ -8,13 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.Toast;
 
 
@@ -25,7 +23,6 @@ import android.widget.Toast;
  * to handle interaction events.
  * Use the {@link OverviewFragment#newInstance} factory method to
  * create an instance of this fragment.
- *
  */
 public class OverviewFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -54,6 +51,7 @@ public class OverviewFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     public OverviewFragment() {
         // Required empty public constructor
     }
@@ -79,7 +77,7 @@ public class OverviewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View out =  inflater.inflate(R.layout.fragment_overview, container, false);
+        View out = inflater.inflate(R.layout.fragment_overview, container, false);
         historyView = (RecyclerView) out.findViewById(R.id.history);
         historyView.setHasFixedSize(true);
         historyView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
@@ -93,13 +91,13 @@ public class OverviewFragment extends Fragment {
         return out;
     }
 
-    private void updateContent(){
+    private void updateContent() {
         //historyAdapter.clear();
         historyAdapter.addAllFromCurosr(getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         //historyAdapter.noti
         //historyAdapter.notifyDataSetChanged();
         //historyView.invalidate();
-        historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount()-1));
+        historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount() - 1));
         Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
     }
 

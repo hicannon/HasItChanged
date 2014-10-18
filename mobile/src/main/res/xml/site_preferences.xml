@@ -6,7 +6,7 @@
         android:inputType="textNoSuggestions"
         android:title="URL"
         android:summary="EX: google.com"
-        android:defaultValue=""/>
+        android:defaultValue="" />
 
     <ListPreference
         android:key="pref_site_protocol"
@@ -14,7 +14,7 @@
         android:entryValues="@array/protocolValues"
         android:summary="The protocol to use, such as http."
         android:title="Protocol"
-        android:defaultValue="http"/>
+        android:defaultValue="http" />
 
     <ListPreference
         android:key="pref_site_sync_method"
@@ -37,7 +37,7 @@
         android:inputType="textNoSuggestions"
         android:title="Timeframe (give units: milli, sec, min, hour, day, week)"
         android:summary="EX: 10 min 30 sec."
-        android:defaultValue="never"/>
+        android:defaultValue="never" />
 
     <CheckBoxPreference
         android:key="pref_site_sync_allow_inexact"
@@ -47,17 +47,17 @@
         android:disableDependentsState="true"
         android:summary="(Recommended) Saves Battery by having less wakeups.\nAllows sync to occur slightly off (usually by &lt;2min), thereby allowing it to be combined with other syncs." />
 
-   <!-- <comx.detian.hasitchanged.TimePreference
-        android:key="pref_site_sync_time_fixed"
-        android:title="Timeframe"/>-->
+    <!-- <comx.detian.hasitchanged.TimePreference
+         android:key="pref_site_sync_time_fixed"
+         android:title="Timeframe"/>-->
 
-   <CheckBoxPreference
+    <CheckBoxPreference
         android:key="pref_site_use_smart_compare"
         android:defaultValue="false"
         android:title="Use Smart Compare"
         android:summary="(EXPERIMENTAL) Try to ignore non-content changes like banners and ads but requires more processing." />
 
-   <CheckBoxPreference
+    <CheckBoxPreference
         android:key="pref_site_download_favicon"
         android:defaultValue="true"
         android:title="Download Favicon"
@@ -74,21 +74,21 @@
         android:inputType="number"
         android:title="Connection Timeout"
         android:summary="Amount of time in milliseconds to wait before giving up connecting."
-        android:defaultValue="10000"/>
+        android:defaultValue="10000" />
 
     <EditTextPreference
         android:key="pref_site_read_timeout"
         android:inputType="number"
         android:title="Read Timeout"
         android:summary="Amount of time in milliseconds to wait before giving up on downloading content."
-        android:defaultValue="15000"/>
+        android:defaultValue="15000" />
 
     <EditTextPreference
         android:key="pref_site_timeout_notify"
         android:inputType="numberSigned"
         android:title="Notify on timeout error"
         android:summary="Number of consecutive failure due to timeout before notifying. (0 for every time, -1 for never)"
-        android:defaultValue="0"/>
+        android:defaultValue="0" />
 
     <CheckBoxPreference
         android:key="pref_site_allow_server_not_modified"

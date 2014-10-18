@@ -10,6 +10,6 @@ public class HSCAlarmSync extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d("SYNC_STATUS", "Wakeup from alarm");
-        HSCMain.requestSyncNow(context.getApplicationContext(), -1);
+        HSCMain.requestSyncNow(context.getApplicationContext(), -1, false);
     }
 }

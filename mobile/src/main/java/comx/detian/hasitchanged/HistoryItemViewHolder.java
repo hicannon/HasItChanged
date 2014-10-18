@@ -5,12 +5,12 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class HistoryItemViewHolder extends RecyclerView.ViewHolder{
+public class HistoryItemViewHolder extends RecyclerView.ViewHolder {
     public TextView mTitle, mDescription, mStatus;
     public ImageView mIcon;
     public View mV;
 
-    public HistoryItemViewHolder(View v, TextView title, TextView description, TextView status, ImageView icon){
+    public HistoryItemViewHolder(View v, TextView title, TextView description, TextView status, ImageView icon) {
         super(v);
         mV = v;
         mTitle = title;

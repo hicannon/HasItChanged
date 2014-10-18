@@ -1,12 +1,10 @@
 package comx.detian.hasitchanged;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -41,7 +39,6 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.TimeZone;
@@ -49,11 +46,11 @@ import java.util.TimeZone;
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     static int numMessages = 0;
 
-    public HSCSyncAdapter(Context context, boolean autoInitialize){
+    public HSCSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
     }
 
-    public HSCSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs){
+    public HSCSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs) {
         super(context, autoInitialize, allowParallelSyncs);
     }
 
@@ -68,10 +65,10 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         Gson gson = new GsonBuilder().create();
 
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        if (activeNetwork==null || !activeNetwork.isConnectedOrConnecting()){
+        if (activeNetwork == null || !activeNetwork.isConnectedOrConnecting()) {
             Log.d("SyncAdapter: onPerform", "No active network");
             return;
         }
@@ -89,7 +86,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             //Skip first dummy
             cursor.moveToNext();
 
-            while (cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 long id = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
                 Log.d("SyncAdapter: onPerform", "Loading preference " + HSCMain.PREFERENCE_PREFIX + id);
                 SharedPreferences sitePreference = context.getSharedPreferences(HSCMain.PREFERENCE_PREFIX + id, Context.MODE_MULTI_PROCESS);
@@ -103,29 +100,29 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 }*/
 
-                if (sitePreference.getBoolean("pref_site_wifi_only", false) && activeNetwork.getType() != ConnectivityManager.TYPE_WIFI){
+                if (sitePreference.getBoolean("pref_site_wifi_only", false) && activeNetwork.getType() != ConnectivityManager.TYPE_WIFI) {
                     Log.d("SyncAdapter: onPerform", "Skipping due to not on wifi");
                     continue;
                 }
 
                 //Only sync those whose time is up with grace period of 1 min
-                if (!forceSyncAll && !bundle.getBoolean("FORCE_SYNC_"+id) && HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never")) > 60){
+                if (!forceSyncAll && !bundle.getBoolean("FORCE_SYNC_" + id) && HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never")) > 60) {
                     continue;
                 }
 
-                String url = sitePreference.getString("pref_site_protocol", "http") + "://" +sitePreference.getString("pref_site_url", "");
+                String url = sitePreference.getString("pref_site_protocol", "http") + "://" + sitePreference.getString("pref_site_url", "");
                 //String url = cursor.getString(DatabaseOH.COLUMNS.PROTOCOL.ordinal()) +"://"+cursor.getString(DatabaseOH.COLUMNS.URL.ordinal());
-                if (sitePreference.getString("pref_site_url", "").trim().length()==0){
+                if (sitePreference.getString("pref_site_url", "").trim().length() == 0) {
                     continue;
                 }
-                if (sitePreference.getString("pref_site_protocol", null).equals("ftp")){
+                if (sitePreference.getString("pref_site_protocol", null).equals("ftp")) {
                     //TODO check if actually directory, maybe use trailing slash
-                    url+="type=d";
+                    url += "type=d";
                 }
                 int lastHash = cursor.getInt(DatabaseOH.COLUMNS.HASH.ordinal());
 
                 String ldate = null, eTag = null;
-                if (sitePreference.getBoolean("pref_site_allow_server_not_modified", false)){
+                if (sitePreference.getBoolean("pref_site_allow_server_not_modified", false)) {
                     ldate = cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal());
                     eTag = cursor.getString(DatabaseOH.COLUMNS.ETAG.ordinal());
                 }
@@ -141,13 +138,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 LinkedHashMap<Long, String> history;
 
                 String historyRaw = cursor.getString(DatabaseOH.COLUMNS.HISTORY.ordinal());
-                if (historyRaw==null || historyRaw.length()==0){
+                if (historyRaw == null || historyRaw.length() == 0) {
                     history = new LinkedHashMap<Long, String>();
-                }else{
+                } else {
                     history = gson.fromJson(historyRaw, DatabaseOH.historyType);
                 }
 
-                if (response.responseCode==200) {
+                if (response.responseCode == 200) {
                     if (response.payload == null) {
                         //TODO log/handle this error
                         Log.e("SyncAdapter: " + url, "Response is 200 but payload is null");
@@ -155,15 +152,15 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                     String data = new String(response.payload);
 
-                    if (sitePreference.getBoolean("pref_site_use_smart_compare", false)){
+                    if (sitePreference.getBoolean("pref_site_use_smart_compare", false)) {
                         Document doc = Jsoup.parse(data);
                         Element e = doc.body().select("#b_results, #ires, #content, .content, content, [ID*=content]").first();
-                        if (e==null){
+                        if (e == null) {
                             e = doc.body();
                         }
                         String temp = "";
-                        for (Element ele : e.getAllElements()){
-                            temp+=ele.ownText();
+                        for (Element ele : e.getAllElements()) {
+                            temp += ele.ownText();
                         }
                         data = temp;
                     }
@@ -179,14 +176,14 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                         if (sitePreference.getBoolean("pref_site_download_favicon", false))
                             updateValues.put("FAVICON", downloadUrl("http://www.google.com/s2/favicons?domain=" + sitePreference.getString("pref_site_url", null), connectTimeout, readTimeout, "GET", ldate, null).payload);
                         //updateValues.put("FAVICON", (byte[]) downloadUrl(cursor.getString(1).substring(0, cursor.getString(1).indexOf("/"))+"/favicon.ico", 15000, 10000, "GET", DesiredType.RAW));
-                        history.put(System.currentTimeMillis(), "C"+response.responseCode);
-                    }else{
-                        history.put(System.currentTimeMillis(), "S"+response.responseCode);
+                        history.put(System.currentTimeMillis(), "C" + response.responseCode);
+                    } else {
+                        history.put(System.currentTimeMillis(), "S" + response.responseCode);
                     }
                     Log.d("SyncAdapter: " + url, "Changed? Hash is " + hashCode + " vs " + lastHash);
-                }else{
-                    history.put(System.currentTimeMillis(), "O"+response.responseCode);
-                    if (response.responseCode!=304){
+                } else {
+                    history.put(System.currentTimeMillis(), "O" + response.responseCode);
+                    if (response.responseCode != 304) {
                         createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
                     }
                 }
@@ -242,14 +239,14 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             conn.setConnectTimeout(connectTimeout /* milliseconds */);
             if (conn instanceof HttpURLConnection) {
                 ((HttpURLConnection) conn).setRequestMethod(method);
-                if (fromDate!=null) {
+                if (fromDate != null) {
                     HSCMain.df.setTimeZone(TimeZone.getTimeZone("GMT"));
                     Log.d("SyncAdapter: DownloadURL", fromDate);
                     conn.setRequestProperty("If-Modified-Since", fromDate);
-                    if (eTag!=null && eTag.length()!=0)
+                    if (eTag != null && eTag.length() != 0)
                         conn.setRequestProperty("If-None-Match", eTag);
                     conn.setUseCaches(true);
-                }else{
+                } else {
                     conn.setUseCaches(false);
                 }
             }
@@ -258,7 +255,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             conn.connect();
 
             if (conn instanceof HttpURLConnection) {
-                int response = ((HttpURLConnection)conn).getResponseCode();
+                int response = ((HttpURLConnection) conn).getResponseCode();
                 String eTagNew = conn.getHeaderField("ETag");
                 Log.d("SyncAdapter: DownloadURL", "The response code is: " + response + " " + eTagNew);
                 out.responseCode = response;
@@ -268,10 +265,10 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             is = conn.getInputStream();
             Log.d("SyncAdapter: DownloadURL", "The Content-Length is: " + conn.getContentLength());
 
-            if (conn.getContentLength()>0) {
+            if (conn.getContentLength() > 0) {
                 out.payload = new byte[conn.getContentLength()];
                 is.read(out.payload);
-            }else{
+            } else {
                 out.payload = readFully(is);
                 Log.d("SyncAdapter: DownloadURL:", "Read " + out.payload.length);
             }
@@ -308,7 +305,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         BufferedOutputStream bout = new BufferedOutputStream(out);
         BufferedInputStream bis = new BufferedInputStream(is);
         int data = 0;
-        while ((data = bis.read())!=-1){
+        while ((data = bis.read()) != -1) {
             bout.write(data);
         }
         bout.close();
@@ -322,8 +319,8 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 .setContentText(content)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setNumber(++numMessages);
-        if (icon!=null)
-                mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
+        if (icon != null)
+            mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
 
         Intent intent = new Intent(context, HSCMain.class);
 

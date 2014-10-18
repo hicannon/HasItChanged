@@ -8,7 +8,7 @@ public class SiteResponse {
     String eTag;
     byte[] payload;
 
-    SiteResponse(){
+    SiteResponse() {
         responseCode = -1;
         eTag = null;
         payload = null;

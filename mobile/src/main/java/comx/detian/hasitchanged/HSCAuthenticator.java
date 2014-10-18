@@ -9,9 +9,10 @@ import android.os.Bundle;
 
 public class HSCAuthenticator extends AbstractAccountAuthenticator {
 
-    public HSCAuthenticator(Context context){
+    public HSCAuthenticator(Context context) {
         super(context);
     }
+
     @Override
     public Bundle editProperties(AccountAuthenticatorResponse accountAuthenticatorResponse, String s) {
         throw new UnsupportedOperationException();

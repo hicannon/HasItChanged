@@ -6,6 +6,7 @@ import android.os.IBinder;
 
 public class HSCPoliceService extends Service {
     private HSCAuthenticator mA;
+
     public HSCPoliceService() {
         mA = new HSCAuthenticator(this);
     }
