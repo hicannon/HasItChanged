@@ -241,7 +241,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         viewHolder.mStatus.setText(statusCode);
 
         if (changed) {
-            viewHolder.mV.setBackgroundColor(Color.parseColor("#dcbddf"));
+            viewHolder.mV.setBackgroundColor(Color.parseColor("#ffd180"));
         } else {
             viewHolder.mV.setBackgroundColor(Color.WHITE);
         }
