@@ -81,20 +81,25 @@ public class OverviewFragment extends Fragment {
         // Inflate the layout for this fragment
         View out =  inflater.inflate(R.layout.fragment_overview, container, false);
         historyView = (RecyclerView) out.findViewById(R.id.history);
-        historyView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true));
+        historyView.setHasFixedSize(true);
+        historyView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
         historyAdapter = new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         historyView.setAdapter(historyAdapter);
 
+        //TODO setObjectTapListener
+
         out.findViewById(R.id.history_button_collapse).setOnClickListener(historyAdapter);
+        out.findViewById(R.id.history_button_filter).setOnClickListener(historyAdapter);
         return out;
     }
 
     private void updateContent(){
-        historyAdapter.clear();
+        //historyAdapter.clear();
         historyAdapter.addAllFromCurosr(getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         //historyAdapter.noti
         //historyAdapter.notifyDataSetChanged();
         //historyView.invalidate();
+        historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount()-1));
         Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
     }
 
