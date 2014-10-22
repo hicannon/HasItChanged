@@ -38,6 +38,11 @@ public class HSCMain extends Activity
     private static Account mAccount = null;
     private static PendingIntent exactSyncIntent = null;
     private static PendingIntent inexactSyncIntent = null;
+    static{
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
+    private static Bundle syncExtras = new Bundle();
 
     //TODO figure out why getBroadcast is returning different PendingIntents, current is workaround
     public static PendingIntent getExactSyncIntent(Context context) {
@@ -146,6 +151,7 @@ public class HSCMain extends Activity
                 }
             }
         }
+        assert(df.getTimeZone().equals(TimeZone.getTimeZone("GMT")));
         try {
             elapsedTime = (new Date()).getTime() - df.parse(lastSyncTime).getTime();
         } catch (Exception e) {
@@ -249,13 +255,15 @@ public class HSCMain extends Activity
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected static void updateNextSyncTime(Context context) {
-        ContentResolver.removePeriodicSync(getAccount(context), AUTHORITY, new Bundle());
         long nextSyncTime = getNextSyncTime(context, "sync", true);
         if (nextSyncTime != Long.MAX_VALUE) {
             nextSyncTime /= 1000; //Sync needs to be in seconds
             //Prevent syncs from being too close together
             nextSyncTime = nextSyncTime < 60 ? 120 : nextSyncTime;
-            ContentResolver.addPeriodicSync(getAccount(context), AUTHORITY, new Bundle(), nextSyncTime);
+            ContentResolver.addPeriodicSync(getAccount(context), AUTHORITY, syncExtras, nextSyncTime);
+            Log.d("SYNC_STATUS", "Setting sync for " + nextSyncTime + " sec\n");
+        }else{
+            ContentResolver.removePeriodicSync(getAccount(context), AUTHORITY, syncExtras);
         }
 
         //TODO check to make sure can schedule the same PendingIntent multiple times (same IntentSender?)
@@ -267,7 +275,7 @@ public class HSCMain extends Activity
         long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
             alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
-            Log.d("SYNC_STATUS", "Setting exact for " + nextExactAlarmTime + " millis" + getExactSyncIntent(context));
+            Log.d("SYNC_STATUS", "Setting exact for " + nextExactAlarmTime + " millis\n");
         }
 
         //PendingIntent inexactSyncIntent = PendingIntent.getBroadcast(context, 2, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
@@ -275,7 +283,7 @@ public class HSCMain extends Activity
         long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true);
         if (nextInexactAlarmTime != Long.MAX_VALUE) {
             alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextInexactAlarmTime, getInExactSyncIntent(context));
-            Log.d("SYNC_STATUS", "Setting inexact for " + nextExactAlarmTime + " millis" + getExactSyncIntent(context));
+            Log.d("SYNC_STATUS", "Setting inexact for " + nextExactAlarmTime + " millis\n");
         }
 
         Log.d("SYNC_STATUS: ", (nextSyncTime == Long.MAX_VALUE ? "NEVER" : nextSyncTime*1000) + " " + (nextExactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextExactAlarmTime) + " " + (nextInexactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextInexactAlarmTime));
@@ -302,7 +310,6 @@ public class HSCMain extends Activity
         mTitle = "HSC?";//getTitle();
         mResolver = getContentResolver();
         ContentResolver.setSyncAutomatically(getAccount(this), AUTHORITY, true);
-        df.setTimeZone(TimeZone.getTimeZone("GMT"));
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(

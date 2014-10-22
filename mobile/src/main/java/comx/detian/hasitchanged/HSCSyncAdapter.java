@@ -209,12 +209,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             Intent intent = new Intent("comx.detian.hasitchanged.SYNC_COMPLETE");
             context.sendBroadcast(intent);
 
-            /*//Update next sync interval
-            long nextSync = HSCMain.calculateTimeToTrigger(targetTimes, syncTimes) / 1000; // in seconds
-            Log.d("CalcFuture", "Scheduling sync for "+nextSync+" seconds in the future");
-            nextSync = nextSync < 60 ? 120 : nextSync; //TODO don't spam sync
-            ContentResolver.addPeriodicSync(((AccountManager) getContext().getSystemService(Context.ACCOUNT_SERVICE)).getAccountsByType("HSC.comx")[0], HSCMain.AUTHORITY, new Bundle(), nextSync);*/
-
             //Schedule next sync
             HSCMain.updateNextSyncTime(context);
         } catch (RemoteException e) {
