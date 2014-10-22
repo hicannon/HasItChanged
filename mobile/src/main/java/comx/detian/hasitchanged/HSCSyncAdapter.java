@@ -56,11 +56,13 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle bundle, String authority, ContentProviderClient contentProviderClient, SyncResult syncResult) {
-        Log.d("Sync: onPerform", "called");
+        Log.d("Sync: onPerformSync", "Auto");
         performSyncNow(getContext(), bundle, contentProviderClient);
+        Log.d("Sync: onPerformSync", "Finished");
     }
 
     public synchronized static void performSyncNow(Context context, Bundle bundle, final ContentProviderClient contentProviderClient) {
+        Log.d("Sync: performSyncNow", "called");
         numMessages = 0;
         Gson gson = new GsonBuilder().create();
 
