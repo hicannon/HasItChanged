@@ -350,13 +350,12 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
-                .setSmallIcon(R.drawable.ic_notify_change)
-                .setNumber(numMessages);
+                .setSmallIcon(R.drawable.ic_notify_change);
         if (sound!=null && sound.length()>0){
             mBuilder.setSound(Uri.parse(sound));
         }
         if (!separate && numMessages>1){
-            mBuilder.setContentTitle("HasItChanged?").setContentText("Yep. Multiple sites have changed.");
+            mBuilder.setContentTitle("HasItChanged?").setContentText("Yep. Multiple sites have changed.").setNumber(numMessages);;
         }
         if (icon != null)
             mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
