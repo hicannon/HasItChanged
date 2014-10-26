@@ -1,1 +1,1 @@
-include ':mobile', ':wear'
+include ':mobile', ':wear', ':android-support-v4-preferencefragment'

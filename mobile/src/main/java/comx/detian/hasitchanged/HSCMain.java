@@ -4,9 +4,8 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.FragmentManager;
+import android.support.v4.app.FragmentManager;
 import android.app.PendingIntent;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
@@ -16,6 +15,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -28,7 +28,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 
-public class HSCMain extends Activity
+public class HSCMain extends FragmentActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     protected static final String AUTHORITY = "comx.detian.hasitchanged.provider";
@@ -306,7 +306,7 @@ public class HSCMain extends Activity
         setContentView(R.layout.activity_hscmain);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
+                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = "HSC?";//getTitle();
         mResolver = getContentResolver();
         ContentResolver.setSyncAutomatically(getAccount(this), AUTHORITY, true);
@@ -320,7 +320,7 @@ public class HSCMain extends Activity
     @Override
     public void onNavigationDrawerItemSelected(int position, long id) {
         // update the main content by replacing fragments
-        FragmentManager fragmentManager = getFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, id == 0 ? OverviewFragment.newInstance() : SiteSettingsFragment.newInstance(id))
                 .commit();

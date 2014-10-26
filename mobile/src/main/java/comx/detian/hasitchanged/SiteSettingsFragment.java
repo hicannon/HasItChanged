@@ -5,8 +5,8 @@ import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.support.v4.preference.PreferenceFragment;
 import android.util.Log;
 
 

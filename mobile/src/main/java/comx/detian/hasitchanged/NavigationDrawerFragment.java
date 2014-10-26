@@ -5,17 +5,13 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -24,8 +20,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,7 +37,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import java.net.MalformedURLException;
@@ -101,7 +101,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
 
         // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedPosition, 0);
+        //selectItem(mCurrentSelectedPosition, 0);
     }
 
     @Override
@@ -167,6 +167,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             }
         };
         getActivity().registerReceiver(receiver, new IntentFilter("comx.detian.hasitchanged.SYNC_COMPLETE"));
+
+        selectItem(mCurrentSelectedPosition, 0);
 
         Intent intent = getActivity().getIntent();
         if (intent.getAction()!=null && intent.getAction().equals(Intent.ACTION_SEND)){
