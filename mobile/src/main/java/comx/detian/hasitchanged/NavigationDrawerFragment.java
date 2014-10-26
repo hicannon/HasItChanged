@@ -99,9 +99,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             mCurrentId = savedInstanceState.getLong(STATE_SELECTED_ID);
             mFromSavedInstanceState = true;
         }
-
-        // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedPosition, 0);
     }
 
     @Override
@@ -167,15 +164,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             }
         };
         getActivity().registerReceiver(receiver, new IntentFilter("comx.detian.hasitchanged.SYNC_COMPLETE"));
-
-        Intent intent = getActivity().getIntent();
-        if (intent.getAction()!=null && intent.getAction().equals(Intent.ACTION_SEND)){
-            if (intent.getType()!=null && intent.getType().equals("text/plain")){
-                String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-                System.out.println(sharedText);
-                createNewEntry(sharedText);
-            }
-        }
 
         return mDrawerListView;
     }
@@ -260,6 +248,19 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        Intent intent = getActivity().getIntent();
+        if (intent.getAction()!=null && intent.getAction().equals(Intent.ACTION_SEND)){
+            if (intent.getType()!=null && intent.getType().equals("text/plain")){
+                String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+                System.out.println(sharedText);
+                createNewEntry(sharedText);
+                return;
+            }
+        }
+
+        // Select either the default item (0) or the last selected item.
+        selectItem(mCurrentSelectedPosition, 0);
     }
 
     private void selectItem(int position, long id) {
@@ -271,7 +272,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
         //Remove/add the delete option depending on screen
         if (id == 0 || mCurrentId == 0) {
-            getActivity().invalidateOptionsMenu();
+            if (mCallbacks!=null)
+                mCallbacks.invalidateOptionsMenu();
         }
 
         mCurrentSelectedPosition = position;
@@ -464,5 +466,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position, long id);
+
+        void invalidateOptionsMenu();
     }
 }
