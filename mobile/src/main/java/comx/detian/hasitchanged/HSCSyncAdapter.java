@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
@@ -170,7 +171,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     int hashCode = data.hashCode();
 
                     if (lastHash != hashCode) {
-                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
+                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""));
 
                         updateValues.put("HASH", hashCode);
                         if (response.eTag != null)
@@ -187,7 +188,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     history.put(System.currentTimeMillis(), "O" + response.responseCode);
                     if (response.responseCode != 304) {
                         //TODO check pref_site_timeout_notify
-                        createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
+                        createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""));
                     }
                 }
 
@@ -310,12 +311,15 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         return out.toByteArray();
     }
 
-    private static void createNotification(Context context, String title, String content, byte[] icon) {
+    private static void createNotification(Context context, String title, String content, byte[] icon, String sound) {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setSmallIcon(R.drawable.ic_notify_change)
                 .setNumber(++numMessages);
+        if (sound!=null && sound.length()>0){
+            mBuilder.setSound(Uri.parse(sound));
+        }
         if (numMessages>1){
             mBuilder.setContentTitle("HasItChanged?").setContentText("Yep. Multiple sites have changed.");
         }

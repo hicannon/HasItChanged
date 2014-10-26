@@ -99,6 +99,11 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
             //}
         }else if (key.equals("pref_site_sync_allow_inexact")){
             HSCMain.updateNextSyncTime(getActivity());
+        }else if (key.equals("pref_site_notification_sound")){
+            //TODO this will never get triggered because this preference uses a new intent, during which this listener is unregistered
+            String current = sharedPreferences.getString(key, "");
+            current = current.length()==0 ? "Silent" : current;
+            findPreference(key).setSummary(current);
         }
     }
 

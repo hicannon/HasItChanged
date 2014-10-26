@@ -51,6 +51,15 @@
          android:key="pref_site_sync_time_fixed"
          android:title="Timeframe"/>-->
 
+    <RingtonePreference
+        android:key="pref_site_notification_sound"
+        android:defaultValue=""
+        android:showDefault = "true"
+        android:showSilent="true"
+        android:ringtoneType = "alarm|notification"
+        android:title="Notification Sound"
+        android:summary="Sound to play for this site" />
+
     <CheckBoxPreference
         android:key="pref_site_use_smart_compare"
         android:defaultValue="false"
