@@ -36,7 +36,7 @@
         android:key="pref_site_sync_time_elapsed"
         android:inputType="textNoSuggestions"
         android:title="Timeframe (give units: milli, sec, min, hour, day, week)"
-        android:summary="EX: 10 min 30 sec."
+        android:summary="Min allowed is 30 sec, can also be 'never'\nEX: 10 min 30 sec."
         android:defaultValue="never" />
 
     <CheckBoxPreference

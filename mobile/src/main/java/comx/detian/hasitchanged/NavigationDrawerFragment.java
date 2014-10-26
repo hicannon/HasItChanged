@@ -260,7 +260,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
 
         // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedPosition, 0);
+        selectItem(mCurrentSelectedPosition, mCurrentId);
     }
 
     private void selectItem(int position, long id) {
