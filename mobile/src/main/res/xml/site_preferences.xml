@@ -95,9 +95,15 @@
     <EditTextPreference
         android:key="pref_site_timeout_notify"
         android:inputType="numberSigned"
-        android:title="Notify on timeout error"
-        android:summary="Number of consecutive failure due to timeout before notifying. (0 for every time, -1 for never)"
+        android:title="Notify on error"
+        android:summary="Number of consecutive failures (like timeouts) before notifying. (0 for every time, -1 for never)"
         android:defaultValue="0" />
+
+    <CheckBoxPreference
+        android:key="pref_site_separate_notification"
+        android:defaultValue="false"
+        android:title="Separate Notification"
+        android:summary="Display a separate notification for this site that directly launches the browser." />
 
     <CheckBoxPreference
         android:key="pref_site_allow_server_not_modified"

@@ -97,19 +97,19 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                                     data.remove(previousKeyTimeStamp);
                                     int newIndex = data.keyIndex(lastTimeStamp);
                                     if (previousIndex == newIndex) {
-                                        Log.d("HistoryAdapter", newIndex + " has changed");
+                                        //Log.d("HistoryAdapter", newIndex + " has changed");
                                         notifyItemChanged(mReverse(newIndex));
                                     } else {
-                                        Log.d("HistoryAdapter", previousIndex + " has been moved to " + newIndex);
+                                        //Log.d("HistoryAdapter", previousIndex + " has been moved to " + newIndex);
                                         notifyItemMoved(mReverse(previousIndex), mReverse(newIndex));
                                     }
                                 } else {
                                     //Newly added
-                                    Log.d("HistoryAdapter", data.keyIndex(lastTimeStamp) + " has been added");
+                                    //Log.d("HistoryAdapter", data.keyIndex(lastTimeStamp) + " has been added");
                                     notifyItemInserted(mReverse(data.keyIndex(lastTimeStamp)));
                                 }
                             } else {
-                                Log.d("HistoryAdapter", data.keyIndex(lastTimeStamp) + " has changed");
+                                //Log.d("HistoryAdapter", data.keyIndex(lastTimeStamp) + " has changed");
                                 notifyItemChanged(mReverse(data.keyIndex(lastTimeStamp)));
                             }
                             firstTimeStamp = timeStamp;
@@ -146,16 +146,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                             data.remove(previousKeyTimeStamp);
                             int newIndex = data.keyIndex(lastTimeStamp);
                             if (previousIndex == newIndex) {
-                                Log.d("HistoryAdapter-e", newIndex + " has changed");
+                                //Log.d("HistoryAdapter-e", newIndex + " has changed");
                                 notifyItemChanged(mReverse(newIndex));
                             } else {
-                                Log.d("HistoryAdapter-e", previousIndex + " has been moved to " + newIndex);
+                                //Log.d("HistoryAdapter-e", previousIndex + " has been moved to " + newIndex);
                                 notifyItemMoved(mReverse(previousIndex), mReverse(newIndex));
                                 notifyItemChanged(mReverse(newIndex));
                             }
                         } else {
                             //Newly added
-                            Log.d("HistoryAdapter-e", mReverse(data.keyIndex(lastTimeStamp)) + " has been added");
+                            //Log.d("HistoryAdapter-e", mReverse(data.keyIndex(lastTimeStamp)) + " has been added");
                             notifyItemInserted(mReverse(data.keyIndex(lastTimeStamp)));
                         }
                     }
@@ -210,6 +210,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
 
         if (favicons.containsKey(url)) {
             viewHolder.mIcon.setImageBitmap(favicons.get(url));
+        }else{
+            viewHolder.mIcon.setImageResource(android.R.drawable.ic_menu_report_image);
         }
         viewHolder.mTitle.setText(url);
         viewHolder.mDescription.setText((count == 1 ? "" : count + "X from\n" + dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date(getKey(i))));

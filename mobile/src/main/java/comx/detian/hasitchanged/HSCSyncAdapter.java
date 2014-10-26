@@ -40,8 +40,11 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.TimeZone;
 
 public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
@@ -171,7 +174,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     int hashCode = data.hashCode();
 
                     if (lastHash != hashCode) {
-                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""));
+                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""), sitePreference.getBoolean("pref_site_separate_notification", false), (int)id);
 
                         updateValues.put("HASH", hashCode);
                         if (response.eTag != null)
@@ -184,12 +187,32 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                         history.put(System.currentTimeMillis(), "S" + response.responseCode);
                     }
                     Log.d("SyncAdapter: " + url, "Changed? Hash is " + hashCode + " vs " + lastHash);
-                } else {
+                } else if (response.responseCode != 304) {
                     history.put(System.currentTimeMillis(), "O" + response.responseCode);
-                    if (response.responseCode != 304) {
-                        //TODO check pref_site_timeout_notify
-                        createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""));
+                    //TODO make this more efficient, maybe store as field
+                    int targetCount = Integer.parseInt(sitePreference.getString("pref_site_timeout_notify", "0"));
+                    if (targetCount < 0) {
+                        //Never notify
+                    } else if (targetCount == 0) {
+                        //Always notify
+                        createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""), sitePreference.getBoolean("pref_site_separate_notification", false), (int) id);
+                    } else {
+                        List<Long> keyList = new ArrayList<Long>(history.keySet());
+                        ListIterator<Long> iterator = keyList.listIterator(keyList.size());
+                        while (iterator.hasPrevious()) {
+                            if (history.get(iterator.previous()).charAt(0) == 'O') {
+                                targetCount--;
+                            } else {
+                                break;
+                            }
+                            if (targetCount <= 0) {
+                                createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""), sitePreference.getBoolean("pref_site_separate_notification", false), (int) id);
+                                break;
+                            }
+                        }
                     }
+                } else {
+                    history.put(System.currentTimeMillis(), "S" + response.responseCode);
                 }
 
                 updateValues.put("HISTORY", gson.toJson(history));
@@ -311,16 +334,20 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         return out.toByteArray();
     }
 
-    private static void createNotification(Context context, String title, String content, byte[] icon, String sound) {
+    private static void createNotification(Context context, String title, String content, byte[] icon, String sound, boolean separate, int id) {
+        if (!separate){
+            numMessages++;
+            id = -42;
+        }
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setSmallIcon(R.drawable.ic_notify_change)
-                .setNumber(++numMessages);
+                .setNumber(numMessages);
         if (sound!=null && sound.length()>0){
             mBuilder.setSound(Uri.parse(sound));
         }
-        if (numMessages>1){
+        if (!separate && numMessages>1){
             mBuilder.setContentTitle("HasItChanged?").setContentText("Yep. Multiple sites have changed.");
         }
         if (icon != null)
@@ -346,6 +373,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         NotificationManager mNotificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
-        mNotificationManager.notify(42, mBuilder.build());
+        mNotificationManager.notify(id, mBuilder.build());
     }
 }
