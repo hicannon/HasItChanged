@@ -372,12 +372,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                 }
             });
 
-            builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    //do nothing
-                }
-            });
+            builder.setNegativeButton(android.R.string.cancel, null);
 
             builder.show();
             return true;
@@ -389,15 +384,21 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     protected void createNewEntry(String url) {
         ContentValues values = new ContentValues();
         String address = "";
+
         if (url!=null){
             URL uri = null;
+
             try {
                 uri = new URL(url);
-            } catch (MalformedURLException e) {
+                address = uri.getAuthority()+uri.getFile();
+                //Todo protocol ass well
+            } catch (Exception e) {
                 address = url;
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("URL seems invalid").setMessage("Please double check the address.");
+                builder.setPositiveButton("I will!", null);
+                builder.show();
             }
-            address = uri.getAuthority()+uri.getFile();
-            //Todo protocol ass well
         }
 
         values.put("URL", address);

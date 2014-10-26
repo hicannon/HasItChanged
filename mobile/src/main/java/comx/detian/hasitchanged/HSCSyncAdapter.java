@@ -186,6 +186,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 } else {
                     history.put(System.currentTimeMillis(), "O" + response.responseCode);
                     if (response.responseCode != 304) {
+                        //TODO check pref_site_timeout_notify
                         createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()));
                     }
                 }
