@@ -169,7 +169,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         getActivity().registerReceiver(receiver, new IntentFilter("comx.detian.hasitchanged.SYNC_COMPLETE"));
 
         Intent intent = getActivity().getIntent();
-        if (intent.getAction().equals(Intent.ACTION_SEND)){
+        if (intent.getAction()!=null && intent.getAction().equals(Intent.ACTION_SEND)){
             if (intent.getType()!=null && intent.getType().equals("text/plain")){
                 String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
                 System.out.println(sharedText);
