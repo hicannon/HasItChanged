@@ -253,6 +253,7 @@ public class HSCMain extends Activity
         return nextSync;
     }
 
+    //@TargetApi(Build.VERSION_CODES.KITKAT)
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected static void updateNextSyncTime(Context context) {
         long nextSyncTime = getNextSyncTime(context, "sync", true);
@@ -274,7 +275,11 @@ public class HSCMain extends Activity
         alarmMgr.cancel(getExactSyncIntent(context));
         long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
-            alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
+            if(android.os.Build.VERSION.SDK_INT >= 21) {
+                alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
+            }else {
+                alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
+            }
             Log.d("SYNC_STATUS", "Setting exact for " + nextExactAlarmTime + " millis\n");
         }
 
