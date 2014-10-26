@@ -39,6 +39,9 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
@@ -164,6 +167,16 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             }
         };
         getActivity().registerReceiver(receiver, new IntentFilter("comx.detian.hasitchanged.SYNC_COMPLETE"));
+
+        Intent intent = getActivity().getIntent();
+        if (intent.getAction().equals(Intent.ACTION_SEND)){
+            if (intent.getType()!=null && intent.getType().equals("text/plain")){
+                String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+                System.out.println(sharedText);
+                createNewEntry(sharedText);
+            }
+        }
+
         return mDrawerListView;
     }
 
@@ -337,15 +350,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             HSCMain.requestSyncNow(getActivity(), mCurrentId, true);
             return true;
         } else if (item.getItemId() == R.id.add_site) {
-            ContentValues values = new ContentValues();
-            values.put("URL", "");
-            Uri uri = getActivity().getContentResolver().insert(DatabaseOH.getBaseURI(), values);
-            mAdapter.changeCursor(getSitesCursor());
-            mAdapter.notifyDataSetChanged();
-            //TODO NavigationDrawer will not upddate properly if using LoadManager due to timing
-            //getLoaderManager().restartLoader(0, null ,this);
-            //mDrawerListView.postInvalidate();
-            selectItem(mAdapter.getCount() - 1, ContentUris.parseId(uri));
+            createNewEntry(null);
             return true;
         } else if (item.getItemId() == R.id.delete_site) {
             Log.d("NavigationDrawer: ", "Delete");
@@ -377,6 +382,34 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    protected void createNewEntry(String url) {
+        ContentValues values = new ContentValues();
+        String address = "";
+        if (url!=null){
+            URL uri = null;
+            try {
+                uri = new URL(url);
+            } catch (MalformedURLException e) {
+                address = url;
+            }
+            address = uri.getAuthority()+uri.getFile();
+            //Todo protocol ass well
+        }
+
+        values.put("URL", address);
+        Uri uri = getActivity().getContentResolver().insert(DatabaseOH.getBaseURI(), values);
+        mAdapter.changeCursor(getSitesCursor());
+        mAdapter.notifyDataSetChanged();
+        //TODO NavigationDrawer will not upddate properly if using LoadManager due to timing
+        //getLoaderManager().restartLoader(0, null ,this);
+        //mDrawerListView.postInvalidate();
+
+        SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + ContentUris.parseId(uri), Context.MODE_MULTI_PROCESS);
+        targetPref.edit().putString("pref_site_url", address).commit();
+
+        selectItem(mAdapter.getCount() - 1, ContentUris.parseId(uri));
     }
 
     /**

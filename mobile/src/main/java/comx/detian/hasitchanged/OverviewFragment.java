@@ -84,7 +84,8 @@ public class OverviewFragment extends Fragment {
         historyAdapter = new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         historyView.setAdapter(historyAdapter);
 
-        //TODO setObjectTapListener
+        //TODO ability to tap on items
+        //historyView.addOnItemTouchListener();
 
         out.findViewById(R.id.history_button_collapse).setOnClickListener(historyAdapter);
         out.findViewById(R.id.history_button_filter).setOnClickListener(historyAdapter);

@@ -233,8 +233,8 @@ public class HSCMain extends Activity
             //for (int i = 1; i<mAdapter.getItemCount(); i++) {
             //long siteId = mAdapter.getItemId(i);
             SharedPreferences sp = context.getSharedPreferences(PREFERENCE_PREFIX + siteId, MODE_MULTI_PROCESS);
-            if (sp.getString("pref_site_sync_method", null).equals(methodToCheck)
-                    && sp.getString("pref_site_sync_type", null).equals("elapsed_time")
+            if (sp.getString("pref_site_sync_method", "").equals(methodToCheck)
+                    && sp.getString("pref_site_sync_type", "").equals("elapsed_time")
                     && sp.getBoolean("pref_site_sync_allow_inexact", true) == inexact) {
                 if (sp.getString("pref_site_url", "").length() != 0
                         && !sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {

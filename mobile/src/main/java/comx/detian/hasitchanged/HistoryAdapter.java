@@ -113,10 +113,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                                 notifyItemChanged(mReverse(data.keyIndex(lastTimeStamp)));
                             }
                             firstTimeStamp = timeStamp;
-                            //lastStatus = history.get(timeStamp);
                             count = 0;
                             previousKeyTimeStamp = -1;
-                            //continue;
                         }
 
                         if (data.containsKey(timeStamp)) {
@@ -129,7 +127,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                     } else {
                         String status = data.put(timeStamp, url + "\t" + history.get(timeStamp) + "\t" + 1234 + "\t" + 1);
                         if (status == null) {
-                            //addList.add(timeStamp);
                             notifyItemInserted(mReverse(data.keyIndex(timeStamp)));
                         }
                     }
