@@ -355,7 +355,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             createNewEntry(null);
             return true;
         } else if (item.getItemId() == R.id.delete_site) {
-            Log.d("NavigationDrawer: ", "Delete");
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             final SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + mCurrentId, Context.MODE_MULTI_PROCESS);
             builder.setTitle("Delete this URL?").setMessage(targetPref.getString("pref_site_url", null) + " will be deleted.");
@@ -369,6 +368,24 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     getLoaderManager().restartLoader(0, null, NavigationDrawerFragment.this);
                     selectItem(0, 0); //Switch to overview
                     HSCMain.updateNextSyncTime(getActivity());
+                }
+            });
+
+            builder.setNegativeButton(android.R.string.cancel, null);
+
+            builder.show();
+            return true;
+        } else if (item.getItemId() == R.id.clear_history) {
+            Log.d("NavigationDrawer: ", "Clear history");
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            final SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + mCurrentId, Context.MODE_MULTI_PROCESS);
+            builder.setTitle("Clear history for this URL?").setMessage(targetPref.getString("pref_site_url", null) + "'s history will be deleted.");
+            builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    ContentValues cv = new ContentValues();
+                    cv.put("HISTORY", "");
+                    getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), cv, "_id=?", new String[]{mCurrentId + ""});
                 }
             });
 
