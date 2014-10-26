@@ -335,10 +335,18 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static void createNotification(Context context, String title, String content, byte[] icon, String sound, boolean separate, int id) {
-        if (!separate){
+        Intent intent;
+        if (!separate) {
             numMessages++;
             id = -42;
         }
+
+        if (separate || numMessages==1){
+            intent = new Intent(Intent.ACTION_VIEW, Uri.parse(title));
+        }else{
+            intent  = new Intent(context, HSCMain.class);
+
+    }
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
@@ -352,8 +360,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         }
         if (icon != null)
             mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
-
-        Intent intent = new Intent(context, HSCMain.class);
 
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
