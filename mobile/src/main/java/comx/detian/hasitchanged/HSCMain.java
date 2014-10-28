@@ -45,11 +45,7 @@ public class HSCMain extends ActionBarActivity
     }
 
     private static Bundle syncExtras = new Bundle();
-    /*public static Intent getInexactIntent() {
-        return inexactIntent;
-    }
 
-    private static Intent inexactIntent;*/
     ContentResolver mResolver;
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -115,6 +111,7 @@ public class HSCMain extends ActionBarActivity
      */
     static long calcTimeDiff(String lastSyncTime, String targetT) {
         long elapsedTime;
+        //This regex splits on on number/character boundary
         String[] pieces = targetT.split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
         long targetTime = 0;
         long temp = -1;
@@ -180,11 +177,6 @@ public class HSCMain extends ActionBarActivity
      * @param notify   whether to display a tost
      */
     static void requestSyncNow(final Context context, long idToSync, boolean notify) {
-        /*if (ContentResolver.isSyncPending(HSCMain.getAccount(context), AUTHORITY) ||
-                ContentResolver.isSyncActive(HSCMain.getAccount(context), AUTHORITY)) {
-            Log.d("SYNC: Manual", "Sync pending, cancelling");
-            ContentResolver.cancelSync(HSCMain.getAccount(context), AUTHORITY);
-        }*/
         final Bundle params = new Bundle();
         params.putBoolean(
                 ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -199,7 +191,6 @@ public class HSCMain extends ActionBarActivity
             if (notify)
                 Toast.makeText(context, "Checking this for Changes", Toast.LENGTH_SHORT).show();
         }
-        //ContentResolver.requestSync(HSCMain.getAccount(context), AUTHORITY, params);
         //TODO consider using AsyncTask instead
         new Thread(new Runnable() {
             @Override
@@ -231,8 +222,6 @@ public class HSCMain extends ActionBarActivity
         while (cursor.moveToNext()) {
             long siteId = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
 
-            //for (int i = 1; i<mAdapter.getItemCount(); i++) {
-            //long siteId = mAdapter.getItemId(i);
             SharedPreferences sp = context.getSharedPreferences(PREFERENCE_PREFIX + siteId, MODE_MULTI_PROCESS);
             if (sp.getString("pref_site_sync_method", "").equals(methodToCheck)
                     && sp.getString("pref_site_sync_type", "").equals("elapsed_time")
@@ -322,7 +311,7 @@ public class HSCMain extends ActionBarActivity
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = "HSC?";//getTitle();
+        mTitle = "HSC?";
         mResolver = getContentResolver();
         ContentResolver.setSyncAutomatically(getAccount(this), AUTHORITY, true);
 

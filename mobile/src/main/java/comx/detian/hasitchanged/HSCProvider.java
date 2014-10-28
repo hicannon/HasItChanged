@@ -12,11 +12,6 @@ public class HSCProvider extends ContentProvider {
 
     private SQLiteOpenHelper sqloh;
 
-    /*private static final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-    static{
-        mUriMatcher.addURI("comx.detian.hasitchanged.HSCProvider", );
-    }*/
-
     @Override
     public boolean onCreate() {
         sqloh = new DatabaseOH(getContext());

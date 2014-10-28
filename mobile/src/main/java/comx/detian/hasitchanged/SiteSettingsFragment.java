@@ -11,10 +11,7 @@ import android.util.Log;
 
 
 public class SiteSettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String SITE_ID = "param_site_id";
 
     private long siteId;
 
@@ -35,8 +32,7 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
     public static SiteSettingsFragment newInstance(long param1) {
         SiteSettingsFragment fragment = new SiteSettingsFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_PARAM1, param1);
-        //args.putString(ARG_PARAM2, param2);
+        args.putLong(SITE_ID, param1);
         fragment.setArguments(args);
         return fragment;
     }
@@ -45,10 +41,9 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            siteId = getArguments().getLong(ARG_PARAM1);
+            siteId = getArguments().getLong(SITE_ID);
         }
 
-        //Cursor cursor = getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null);
         Log.d("SiteSettings:", "Loading " + HSCMain.PREFERENCE_PREFIX + siteId);
         this.getPreferenceManager().setSharedPreferencesName(HSCMain.PREFERENCE_PREFIX + siteId);
         addPreferencesFromResource(R.xml.site_preferences);
@@ -106,5 +101,4 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
             findPreference(key).setSummary(current);
         }
     }
-
 }

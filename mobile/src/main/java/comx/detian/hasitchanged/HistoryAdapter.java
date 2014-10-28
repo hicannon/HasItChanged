@@ -35,9 +35,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
     HashMap<String, Bitmap> favicons;
     private boolean reverse;
 
-    //private Object[] keys;
-    //private Object[] values;
-
     HistoryAdapter(Context context, Cursor c) {
         data = new IndexedTreeMap<Long, String>();
         favicons = new HashMap<String, Bitmap>();
@@ -57,9 +54,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
     }
 
     synchronized void addAllFromCurosr(Cursor cursor) {
-        //ArrayList<Integer> changeList = new ArrayList<Integer>();
-        //ArrayList<Long> addList = new ArrayList<Long>();
-
         //Normally the list will only grow, the only other case is clear all history
         int totalCount = 0;
 
@@ -172,9 +166,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
 
         //This is a clear all scenario
         if (totalCount==0){
-            favicons.clear();
             notifyItemRangeRemoved(0, data.size());
-            data.clear();
+            clear();
         }
     }
 

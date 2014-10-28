@@ -4,6 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
+/**
+ * Required Service for Sync Account authentication
+ */
 public class HSCPoliceService extends Service {
     private HSCAuthenticator mA;
 

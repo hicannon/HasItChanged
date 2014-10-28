@@ -7,6 +7,9 @@ import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.os.Bundle;
 
+/**
+ * Dummy Authenticator for the Sync Account
+ */
 public class HSCAuthenticator extends AbstractAccountAuthenticator {
 
     public HSCAuthenticator(Context context) {

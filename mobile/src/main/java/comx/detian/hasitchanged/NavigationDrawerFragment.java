@@ -106,7 +106,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         setHasOptionsMenu(true);
 
         getLoaderManager().initLoader(0, null, this);
-        //setEmptyText("Not Watching Any");
     }
 
     @Override
@@ -328,13 +327,11 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             inflater.inflate(R.menu.global, menu);
             showGlobalContextActionBar();
         } else {
-            //if (menu.findItem(R.id.delete_site)!=null){
             if (mCurrentId == 0) {
                 menu.findItem(R.id.delete_site).setVisible(false);
             } else {
                 menu.findItem(R.id.delete_site).setVisible(true);
             }
-            //}
         }
         super.onCreateOptionsMenu(menu, inflater);
 
@@ -432,11 +429,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
         values.put("URL", address);
         Uri uri = getActivity().getContentResolver().insert(DatabaseOH.getBaseURI(), values);
-        //mAdapter.changeCursor(getSitesCursor());
-        //mAdapter.notifyDataSetChanged();
         switchToLast = true;
         getLoaderManager().restartLoader(0, null, this);
-        //mDrawerListView.postInvalidate();
 
         SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + ContentUris.parseId(uri), Context.MODE_MULTI_PROCESS);
         targetPref.edit().putString("pref_site_url", address).commit();
@@ -451,7 +445,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     private void showGlobalContextActionBar() {
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
-        //actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setTitle(R.string.app_name);
     }
 

@@ -4,6 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
+/**
+ * Required Service bound to Sync Process
+ */
 public class HSCExplorerService extends Service {
     private static final Object mSALock = new Object();
     private static HSCSyncAdapter mSA = null;
