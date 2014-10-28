@@ -18,7 +18,10 @@ import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.MergeCursor;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -79,6 +82,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     private boolean mUserLearnedDrawer;
     private boolean switchToLast = false;
     private BroadcastReceiver receiver;
+    private MatrixCursor lastItem;
 
     public NavigationDrawerFragment() {
     }
@@ -97,6 +101,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             mCurrentId = savedInstanceState.getLong(STATE_SELECTED_ID);
             mFromSavedInstanceState = true;
         }
+
+        lastItem = new MatrixCursor(new String[] { "_id", "URL", "LUDATE", "HASH", "ETAG", "FAVICON", "CONTENT", "HISTORY"});
+        lastItem.addRow(new String[]{Integer.MAX_VALUE+"", "Add New", null, null, null, null, null, null});
     }
 
     @Override
@@ -136,7 +143,11 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     if (raw != null)
                         imageView.setImageBitmap(BitmapFactory.decodeByteArray(raw, 0, raw.length));
                     else {
-                        imageView.setImageResource(android.R.drawable.ic_menu_view);
+                        switch (c.getInt(DatabaseOH.COLUMNS._id.ordinal())){
+                            case 0: imageView.setImageResource(android.R.drawable.ic_menu_view); break;
+                            case Integer.MAX_VALUE: imageView.setImageResource(android.R.drawable.ic_input_add); break;
+                            default: imageView.setImageResource(android.R.drawable.ic_menu_report_image); break;
+                        }
                     }
                     return true;
                 } else {
@@ -146,6 +157,11 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                         text = "BLANK";
                     }
                     textView.setText(text);
+                    switch (c.getInt(DatabaseOH.COLUMNS._id.ordinal())){
+                        case 0:textView.setTypeface(null, Typeface.BOLD); break;
+                        case Integer.MAX_VALUE: textView.setTypeface(null, Typeface.ITALIC); break;
+                        default: textView.setTypeface(null, Typeface.NORMAL); break;
+                    }
                     return true;
                 }
             }
@@ -246,6 +262,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
+        //Create a new site if there is the intent to do so
         Intent intent = getActivity().getIntent();
         if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_SEND)) {
             if (intent.getType() != null && intent.getType().equals("text/plain")) {
@@ -256,7 +273,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             }
         }
 
-        // Select either the default item (0) or the last selected item.
         selectItem(mCurrentSelectedPosition, mCurrentId);
     }
 
@@ -264,14 +280,21 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         Log.d("NavigationDrawer: ", "select item " + position + " " + id);
         assert (mAdapter.getItemId(position) == id);
 
+        //Dummy last item is add new
+        if (position==mAdapter.getCount()-1){
+            createNewEntry(null);
+            return;
+        }
         //A listener that updates the URL displayed in the Navigation Drawer immediately if it is changed
         SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + id, Context.MODE_MULTI_PROCESS);
         targetPref.registerOnSharedPreferenceChangeListener(this);
 
         //Remove/add the delete option depending on screen
         if (id == 0 || mCurrentId == 0) {
-            if (mCallbacks != null)
+            if (mCallbacks != null) {
+                //Note this has the effect of calling onPrepareOptionsMenu() which does the actual removal
                 mCallbacks.invalidateOptionsMenu();
+            }
         }
 
         mCurrentSelectedPosition = position;
@@ -472,15 +495,16 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdapter.swapCursor(data);
-        mAdapter.notifyDataSetChanged();
+        MergeCursor mergeCursor = new MergeCursor(new Cursor[]{data, lastItem});
+        mAdapter.swapCursor(mergeCursor);
+        //mAdapter.notifyDataSetChanged();
         if (switchToLast) {
             switchToLast = false;
             getActivity().runOnUiThread(new Runnable() {
 
                 @Override
                 public void run() {
-                    selectItem(mAdapter.getCount() - 1, mAdapter.getItemId(mAdapter.getCount() - 1));
+                    selectItem(mAdapter.getCount() - 2, mAdapter.getItemId(mAdapter.getCount() - 2));
 
                 }
             });

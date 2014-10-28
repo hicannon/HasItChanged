@@ -33,7 +33,7 @@ public class DatabaseOH extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, ETAG TEXT, FAVICON BLOB, CONTENT BLO0, HISTORY TEXT)");
+        db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, ETAG TEXT, FAVICON BLOB, CONTENT BLOB, HISTORY TEXT)");
 
         //db.execSQL("INSERT INTO HSC (URL, PROTOCOL, LUDATE, METHOD, TYPE) VALUES ('dd-wrt.com/site/index' , 'http', '"+ HSCMain.df.format(Calendar.getInstance().getTime()) +"', '"+ HSCMain.METHOD.SYNC.ordinal()+"' , '"+ HSCMain.TYPE.REPEATING.ordinal() + "')");
         db.execSQL("INSERT INTO HSC (_id, URL, LUDATE) VALUES (0, 'SUMMARY', '" + HSCMain.df.format(new Date()) + "')");
