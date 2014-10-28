@@ -2,7 +2,6 @@ package comx.detian.hasitchanged;
 
 
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -22,10 +21,14 @@ import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,7 +42,6 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -59,27 +61,23 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
      * expands it. This shared preference tracks this.
      */
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
-
+    SimpleCursorAdapter mAdapter;
     /**
      * A pointer to the current callbacks instance (the Activity).
      */
     private NavigationDrawerCallbacks mCallbacks;
-
     /**
      * Helper component that ties the action bar to the navigation drawer.
      */
     private ActionBarDrawerToggle mDrawerToggle;
-
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerListView;
     private View mFragmentContainerView;
-
     private int mCurrentSelectedPosition = 0;
     private long mCurrentId = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
-
-    SimpleCursorAdapter mAdapter;
+    private boolean switchToLast = false;
     private BroadcastReceiver receiver;
 
     public NavigationDrawerFragment() {
@@ -123,7 +121,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                 selectItem(position, id);
             }
         });
-        mAdapter = new SimpleCursorAdapter(getActionBar().getThemedContext(),
+        mAdapter = new SimpleCursorAdapter(getActivity(),
                 R.layout.list_item_icon_text,
                 null,
                 new String[]{"URL", "FAVICON"},
@@ -199,7 +197,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         mDrawerToggle = new ActionBarDrawerToggle(
                 getActivity(),                    /* host Activity */
                 mDrawerLayout,                    /* DrawerLayout object */
-                R.drawable.ic_drawer,             /* nav drawer image to replace 'Up' caret */
+                (Toolbar) getActivity().findViewById(R.id.toolbar),             /* nav drawer image to replace 'Up' caret */
                 R.string.navigation_drawer_open,  /* "open drawer" description for accessibility */
                 R.string.navigation_drawer_close  /* "close drawer" description for accessibility */
         ) {
@@ -250,8 +248,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         Intent intent = getActivity().getIntent();
-        if (intent.getAction()!=null && intent.getAction().equals(Intent.ACTION_SEND)){
-            if (intent.getType()!=null && intent.getType().equals("text/plain")){
+        if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_SEND)) {
+            if (intent.getType() != null && intent.getType().equals("text/plain")) {
                 String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
                 System.out.println(sharedText);
                 createNewEntry(sharedText);
@@ -265,6 +263,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     private void selectItem(int position, long id) {
         Log.d("NavigationDrawer: ", "select item " + position + " " + id);
+        assert (mAdapter.getItemId(position) == id);
 
         //A listener that updates the URL displayed in the Navigation Drawer immediately if it is changed
         SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + id, Context.MODE_MULTI_PROCESS);
@@ -272,7 +271,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
         //Remove/add the delete option depending on screen
         if (id == 0 || mCurrentId == 0) {
-            if (mCallbacks!=null)
+            if (mCallbacks != null)
                 mCallbacks.invalidateOptionsMenu();
         }
 
@@ -379,13 +378,26 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             Log.d("NavigationDrawer: ", "Clear history");
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             final SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + mCurrentId, Context.MODE_MULTI_PROCESS);
-            builder.setTitle("Clear history for this URL?").setMessage(targetPref.getString("pref_site_url", null) + "'s history will be deleted.");
+            if (mCurrentId==0)
+                builder.setTitle("Clear history for all sites?").setMessage("All history will be deleted.");
+            else
+                builder.setTitle("Clear history for this URL?").setMessage(targetPref.getString("pref_site_url", null) + "'s history will be deleted.");
             builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     ContentValues cv = new ContentValues();
                     cv.put("HISTORY", "");
-                    getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), cv, "_id=?", new String[]{mCurrentId + ""});
+                    if (mCurrentId==0){
+                        for (int j=1; j<mAdapter.getCount(); j++){
+                            getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mAdapter.getItemId(j)), cv, "_id=?", new String[]{mAdapter.getItemId(j) + ""});
+                        }
+                        //Update the UI
+                        //TODO change notification mechanism
+                        Intent intent = new Intent("comx.detian.hasitchanged.SYNC_COMPLETE");
+                        getActivity().sendBroadcast(intent);
+                    }else {
+                        getActivity().getContentResolver().update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), mCurrentId), cv, "_id=?", new String[]{mCurrentId + ""});
+                    }
                 }
             });
 
@@ -402,12 +414,12 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         ContentValues values = new ContentValues();
         String address = "";
 
-        if (url!=null){
+        if (url != null) {
             URL uri = null;
 
             try {
                 uri = new URL(url);
-                address = uri.getAuthority()+uri.getFile();
+                address = uri.getAuthority() + uri.getFile();
                 //Todo protocol ass well
             } catch (Exception e) {
                 address = url;
@@ -420,16 +432,16 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
         values.put("URL", address);
         Uri uri = getActivity().getContentResolver().insert(DatabaseOH.getBaseURI(), values);
-        mAdapter.changeCursor(getSitesCursor());
-        mAdapter.notifyDataSetChanged();
-        //TODO NavigationDrawer will not upddate properly if using LoadManager due to timing
-        //getLoaderManager().restartLoader(0, null ,this);
+        //mAdapter.changeCursor(getSitesCursor());
+        //mAdapter.notifyDataSetChanged();
+        switchToLast = true;
+        getLoaderManager().restartLoader(0, null, this);
         //mDrawerListView.postInvalidate();
 
         SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + ContentUris.parseId(uri), Context.MODE_MULTI_PROCESS);
         targetPref.edit().putString("pref_site_url", address).commit();
 
-        selectItem(mAdapter.getCount() - 1, ContentUris.parseId(uri));
+        //selectItem(mAdapter.getCount() - 1, ContentUris.parseId(uri));
     }
 
     /**
@@ -439,12 +451,12 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     private void showGlobalContextActionBar() {
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        //actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setTitle(R.string.app_name);
     }
 
     private ActionBar getActionBar() {
-        return getActivity().getActionBar();
+        return ((ActionBarActivity) getActivity()).getSupportActionBar();
     }
 
     @Override
@@ -469,6 +481,17 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mAdapter.swapCursor(data);
         mAdapter.notifyDataSetChanged();
+        if (switchToLast) {
+            switchToLast = false;
+            getActivity().runOnUiThread(new Runnable() {
+
+                @Override
+                public void run() {
+                    selectItem(mAdapter.getCount() - 1, mAdapter.getItemId(mAdapter.getCount() - 1));
+
+                }
+            });
+        }
     }
 
     @Override

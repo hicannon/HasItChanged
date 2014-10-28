@@ -10,5 +10,8 @@
     <string name="sync_action">Check Now</string>
     <string name="action_settings">Settings</string>
     <string name="hello_blank_fragment">Summary View</string>
+    <string name="delete_action">Delete</string>
+    <string name="add_action">Add URL</string>
+    <string name="clear_action">Clear History</string>
 
 </resources>

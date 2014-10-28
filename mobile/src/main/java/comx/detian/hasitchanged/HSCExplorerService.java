@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.os.IBinder;
 
 public class HSCExplorerService extends Service {
-    private static HSCSyncAdapter mSA = null;
     private static final Object mSALock = new Object();
+    private static HSCSyncAdapter mSA = null;
 
     public HSCExplorerService() {
 

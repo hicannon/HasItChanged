@@ -6,31 +6,31 @@
 
     <LinearLayout
         android:id="@+id/history_buttons"
-        android:shrinkColumns="2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:shrinkColumns="2">
 
         <Button
             android:id="@+id/history_button_collapse"
-            android:background="?android:attr/selectableItemBackground"
             android:layout_width="0px"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dip"
             android:layout_marginTop="5dip"
             android:layout_weight=".50"
+            android:background="?android:attr/selectableItemBackground"
             android:text="Collapse/Expand" />
 
         <Button
             android:id="@+id/history_button_filter"
-            android:background="?android:attr/selectableItemBackground"
             android:layout_width="0px"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
             android:layout_marginTop="5dip"
             android:layout_weight=".50"
+            android:background="?android:attr/selectableItemBackground"
             android:text="Reverse" />
     </LinearLayout>
 
@@ -39,9 +39,9 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@id/history_buttons"
-        android:scrollbars="vertical"
+        android:background="@android:color/white"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="2dp"
-        android:background="@android:color/white"
+        android:scrollbars="vertical"
         tools:context=".OverviewFragment" />
 </RelativeLayout>

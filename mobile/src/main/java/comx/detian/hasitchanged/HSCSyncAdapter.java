@@ -58,13 +58,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         super(context, autoInitialize, allowParallelSyncs);
     }
 
-    @Override
-    public void onPerformSync(Account account, Bundle bundle, String authority, ContentProviderClient contentProviderClient, SyncResult syncResult) {
-        Log.d("Sync: onPerformSync", "Auto");
-        performSyncNow(getContext(), bundle, contentProviderClient);
-        Log.d("Sync: onPerformSync", "Finished");
-    }
-
     public synchronized static void performSyncNow(Context context, Bundle bundle, final ContentProviderClient contentProviderClient) {
         Log.d("Sync: performSyncNow", "called");
         numMessages = 0;
@@ -96,15 +89,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 long id = cursor.getLong(DatabaseOH.COLUMNS._id.ordinal());
                 Log.d("SyncAdapter: onPerform", "Loading preference " + HSCMain.PREFERENCE_PREFIX + id);
                 SharedPreferences sitePreference = context.getSharedPreferences(HSCMain.PREFERENCE_PREFIX + id, Context.MODE_MULTI_PROCESS);
-
-                /*//Keep track of data to calculate time to next sync
-                if (sitePreference.getString("pref_sync_method", "sync").equals("sync")) {
-                    if (!sitePreference.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
-                        targetTimes.add(sitePreference.getString("pref_site_sync_time_elapsed", "never"));
-                        //System.out.println(targetTimes[i-1]);
-                        syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
-                    }
-                }*/
 
                 if (sitePreference.getBoolean("pref_site_wifi_only", false) && activeNetwork.getType() != ConnectivityManager.TYPE_WIFI) {
                     Log.d("SyncAdapter: onPerform", "Skipping due to not on wifi");
@@ -174,7 +158,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     int hashCode = data.hashCode();
 
                     if (lastHash != hashCode) {
-                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""), sitePreference.getBoolean("pref_site_separate_notification", false), (int)id);
+                        createNotification(context, url, "Has changed.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""), sitePreference.getBoolean("pref_site_separate_notification", false), (int) id);
 
                         updateValues.put("HASH", hashCode);
                         if (response.eTag != null)
@@ -220,9 +204,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 try {
                     contentProviderClient.update(ContentUris.withAppendedId(DatabaseOH.getBaseURI(), id), updateValues, "_id=?", new String[]{"" + id});
 
-                    //This item was synced, so use the new timestamp
-                    /*syncTimes.remove(syncTimes.size()-1);
-                    syncTimes.add(updateValues.getAsString("LUDATE"));*/
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -251,9 +232,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             URL url = new URL(myurl);
             URLConnection conn = url.openConnection();
-            //RESOLVED
-            //Don't rely on content length and re-enable gzip compression (maybe use AndroidHTTPClient
-            //conn.setRequestProperty("Accept-Encoding", "identity");
 
             //conn.setRequestProperty("User-Agent","Mozilla/5.0 Gecko Firefox");
             conn.setReadTimeout(readTimeout /* milliseconds */);
@@ -341,21 +319,22 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             id = -42;
         }
 
-        if (separate || numMessages==1){
+        if (separate || numMessages == 1) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(title));
-        }else{
-            intent  = new Intent(context, HSCMain.class);
+        } else {
+            intent = new Intent(context, HSCMain.class);
 
-    }
+        }
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setSmallIcon(R.drawable.ic_notify_change);
-        if (sound!=null && sound.length()>0){
+        if (sound != null && sound.length() > 0) {
             mBuilder.setSound(Uri.parse(sound));
         }
-        if (!separate && numMessages>1){
-            mBuilder.setContentTitle("HasItChanged?").setContentText("Yep. Multiple sites have changed.").setNumber(numMessages);;
+        if (!separate && numMessages > 1) {
+            mBuilder.setContentTitle("HasItChanged?").setContentText("Yep. Multiple sites have changed.").setNumber(numMessages);
+            ;
         }
         if (icon != null)
             mBuilder.setLargeIcon(BitmapFactory.decodeByteArray(icon, 0, icon.length));
@@ -379,5 +358,12 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
         mNotificationManager.notify(id, mBuilder.build());
+    }
+
+    @Override
+    public void onPerformSync(Account account, Bundle bundle, String authority, ContentProviderClient contentProviderClient, SyncResult syncResult) {
+        Log.d("Sync: onPerformSync", "Auto");
+        performSyncNow(getContext(), bundle, contentProviderClient);
+        Log.d("Sync: onPerformSync", "Finished");
     }
 }

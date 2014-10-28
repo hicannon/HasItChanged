@@ -20,6 +20,10 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
 
     private SharedPreferences pref;
 
+    public SiteSettingsFragment() {
+        // Required empty public constructor
+    }
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -35,10 +39,6 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
         //args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    public SiteSettingsFragment() {
-        // Required empty public constructor
     }
 
     @Override
@@ -88,21 +88,21 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
             (findPreference("pref_site_sync_allow_inexact")).setEnabled(!sharedPreferences.getString(key, "sync").equals("sync"));
             if (sharedPreferences.getString("key", "sync").equals("sync") && !sharedPreferences.getBoolean("pref_site_sync_allow_inexact", false)) {
                 sharedPreferences.edit().putBoolean("pref_site_sync_allow_inexact", true).apply();
-                ((CheckBoxPreference)findPreference("pref_site_sync_allow_inexact")).setChecked(true);
-            }else{
+                ((CheckBoxPreference) findPreference("pref_site_sync_allow_inexact")).setChecked(true);
+            } else {
                 //Changing allow_inexact triggers this method again,so only call updateNextSyncTime here otherwise
                 HSCMain.updateNextSyncTime(getActivity());
             }
-        }else if (key.equals("pref_site_sync_time_elapsed")) {
+        } else if (key.equals("pref_site_sync_time_elapsed")) {
             //if (sharedPreferences.getString("pref_site_sync_type", "elapsed_time").equals("elapsed_time")) {
-                HSCMain.updateNextSyncTime(getActivity());
-            //}
-        }else if (key.equals("pref_site_sync_allow_inexact")){
             HSCMain.updateNextSyncTime(getActivity());
-        }else if (key.equals("pref_site_notification_sound")){
+            //}
+        } else if (key.equals("pref_site_sync_allow_inexact")) {
+            HSCMain.updateNextSyncTime(getActivity());
+        } else if (key.equals("pref_site_notification_sound")) {
             //TODO this will never get triggered because this preference uses a new intent, during which this listener is unregistered
             String current = sharedPreferences.getString(key, "");
-            current = current.length()==0 ? "Silent" : current;
+            current = current.length() == 0 ? "Silent" : current;
             findPreference(key).setSummary(current);
         }
     }

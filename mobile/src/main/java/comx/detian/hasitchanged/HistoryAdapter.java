@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +60,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         //ArrayList<Integer> changeList = new ArrayList<Integer>();
         //ArrayList<Long> addList = new ArrayList<Long>();
 
+        //Normally the list will only grow, the only other case is clear all history
+        int totalCount = 0;
+
         this.cursor = cursor;
         cursorStart = cursor.getPosition();
 
@@ -74,6 +76,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                 continue;
             } else {
                 Map<Long, String> history = gson.fromJson(historyRaw, DatabaseOH.historyType);
+                totalCount+=history.size();
                 long firstTimeStamp = -1, lastTimeStamp = -1, previousKeyTimeStamp = -1;
                 String lastStatus = "";
                 int count = 0;
@@ -166,6 +169,13 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
                 favicons.put(url, BitmapFactory.decodeByteArray(rawFavicon, 0, rawFavicon.length));
             }
         }
+
+        //This is a clear all scenario
+        if (totalCount==0){
+            favicons.clear();
+            notifyItemRangeRemoved(0, data.size());
+            data.clear();
+        }
     }
 
     protected int mReverse(int i) {
@@ -210,7 +220,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
 
         if (favicons.containsKey(url)) {
             viewHolder.mIcon.setImageBitmap(favicons.get(url));
-        }else{
+        } else {
             viewHolder.mIcon.setImageResource(android.R.drawable.ic_menu_report_image);
         }
         viewHolder.mTitle.setText(url);
@@ -240,9 +250,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         viewHolder.mStatus.setText(statusCode);
 
         if (changed) {
-            viewHolder.mV.setBackgroundColor(Color.parseColor("#ffd180"));
+            viewHolder.mV.setBackgroundColor(Color.parseColor("#ffab40"));
         } else {
-            viewHolder.mV.setBackgroundColor(Color.WHITE);
+            viewHolder.mV.setBackgroundColor(Color.TRANSPARENT);
         }
     }
 

@@ -3,8 +3,7 @@ package comx.detian.hasitchanged;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
-import android.app.Activity;
+import android.support.v7.app.ActionBar;
 import android.app.AlarmManager;
 import android.app.FragmentManager;
 import android.app.PendingIntent;
@@ -17,6 +16,8 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +29,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 
-public class HSCMain extends Activity
+public class HSCMain extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     protected static final String AUTHORITY = "comx.detian.hasitchanged.provider";
@@ -38,11 +39,26 @@ public class HSCMain extends Activity
     private static Account mAccount = null;
     private static PendingIntent exactSyncIntent = null;
     private static PendingIntent inexactSyncIntent = null;
-    static{
+
+    static {
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     private static Bundle syncExtras = new Bundle();
+    /*public static Intent getInexactIntent() {
+        return inexactIntent;
+    }
+
+    private static Intent inexactIntent;*/
+    ContentResolver mResolver;
+    /**
+     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
+     */
+    private NavigationDrawerFragment mNavigationDrawerFragment;
+    /**
+     * Used to store the last screen title. For use in {@link /*#restoreActionBar()}.
+     */
+    private CharSequence mTitle;
 
     //TODO figure out why getBroadcast is returning different PendingIntents, current is workaround
     public static PendingIntent getExactSyncIntent(Context context) {
@@ -58,21 +74,6 @@ public class HSCMain extends Activity
         }
         return inexactSyncIntent;
     }
-
-    /*public static Intent getInexactIntent() {
-        return inexactIntent;
-    }
-
-    private static Intent inexactIntent;*/
-    ContentResolver mResolver;
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
-    private CharSequence mTitle;
 
     public static Account getAccount(Context context) {
         if (mAccount == null) {
@@ -151,7 +152,7 @@ public class HSCMain extends Activity
                 }
             }
         }
-        assert(df.getTimeZone().equals(TimeZone.getTimeZone("GMT")));
+        assert (df.getTimeZone().equals(TimeZone.getTimeZone("GMT")));
         try {
             elapsedTime = (new Date()).getTime() - df.parse(lastSyncTime).getTime();
         } catch (Exception e) {
@@ -176,7 +177,7 @@ public class HSCMain extends Activity
      *
      * @param context  the application context
      * @param idToSync 0 to force sync all, -1 to only sync those necessary; otherwise sync idToSync
-     * @param  notify whether to display a tost
+     * @param notify   whether to display a tost
      */
     static void requestSyncNow(final Context context, long idToSync, boolean notify) {
         /*if (ContentResolver.isSyncPending(HSCMain.getAccount(context), AUTHORITY) ||
@@ -253,7 +254,6 @@ public class HSCMain extends Activity
         return nextSync;
     }
 
-    //@TargetApi(Build.VERSION_CODES.KITKAT)
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected static void updateNextSyncTime(Context context) {
         long nextSyncTime = getNextSyncTime(context, "sync", true);
@@ -263,7 +263,7 @@ public class HSCMain extends Activity
             nextSyncTime = nextSyncTime < 60 ? 120 : nextSyncTime;
             ContentResolver.addPeriodicSync(getAccount(context), AUTHORITY, syncExtras, nextSyncTime);
             Log.d("SYNC_STATUS", "Setting sync for " + nextSyncTime + " sec\n");
-        }else{
+        } else {
             ContentResolver.removePeriodicSync(getAccount(context), AUTHORITY, syncExtras);
         }
 
@@ -275,9 +275,9 @@ public class HSCMain extends Activity
         alarmMgr.cancel(getExactSyncIntent(context));
         long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
-            if(android.os.Build.VERSION.SDK_INT >= 21) {
+            if (android.os.Build.VERSION.SDK_INT >= 21) {
                 alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
-            }else {
+            } else {
                 alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
             }
             Log.d("SYNC_STATUS", "Setting exact for " + nextExactAlarmTime + " millis\n");
@@ -291,7 +291,7 @@ public class HSCMain extends Activity
             Log.d("SYNC_STATUS", "Setting inexact for " + nextExactAlarmTime + " millis\n");
         }
 
-        Log.d("SYNC_STATUS: ", (nextSyncTime == Long.MAX_VALUE ? "NEVER" : nextSyncTime*1000) + " " + (nextExactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextExactAlarmTime) + " " + (nextInexactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextInexactAlarmTime));
+        Log.d("SYNC_STATUS: ", (nextSyncTime == Long.MAX_VALUE ? "NEVER" : nextSyncTime * 1000) + " " + (nextExactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextExactAlarmTime) + " " + (nextInexactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextInexactAlarmTime));
     }
 
     public static Account CreateSyncAccount(Context context) {
@@ -311,6 +311,15 @@ public class HSCMain extends Activity
 
         setContentView(R.layout.activity_hscmain);
 
+        //Set up the actionbar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        } else {
+            throw new RuntimeException();
+        }
+
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = "HSC?";//getTitle();
@@ -329,12 +338,11 @@ public class HSCMain extends Activity
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, id == 0 ? OverviewFragment.newInstance() : SiteSettingsFragment.newInstance(id))
-                .commit();
+                .commitAllowingStateLoss();
     }
 
     public void restoreActionBar() {
-        ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
     }

@@ -31,14 +31,6 @@ public class DatabaseOH extends SQLiteOpenHelper {
         return baseURI;
     }
 
-    /**
-     * 0    1       2           3           4           5               6           7
-     * ID   URL     LUDATE      HASH     FAVICON        CONTENT        METHOD, TYPE, TIMEFRAME, EXACT, DATA
-     */
-    public static enum COLUMNS {
-        _id, URL, LUDATE, HASH, ETAG, FAVICON, CONTENT, HISTORY
-    }
-
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE HSC ( _id INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT, LUDATE TEXT, HASH INTEGER, ETAG TEXT, FAVICON BLOB, CONTENT BLO0, HISTORY TEXT)");
@@ -52,5 +44,13 @@ public class DatabaseOH extends SQLiteOpenHelper {
         Log.d("DBH: onUpgrade", oldVersion + " to " + newVersion);
         db.execSQL("DROP TABLE IF EXISTS HSC");
         onCreate(db);
+    }
+
+    /**
+     * 0    1       2           3           4           5               6           7
+     * ID   URL     LUDATE      HASH     FAVICON        CONTENT        METHOD, TYPE, TIMEFRAME, EXACT, DATA
+     */
+    public static enum COLUMNS {
+        _id, URL, LUDATE, HASH, ETAG, FAVICON, CONTENT, HISTORY
     }
 }

@@ -1,25 +1,26 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".HSCMain">
     <item
         android:id="@+id/add_site"
-        android:title="Add URL"
+        android:title="@string/add_action"
         android:icon="@android:drawable/ic_menu_add"
-        android:showAsAction="always" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/delete_site"
-        android:title="Delete"
+        android:title="@string/delete_action"
         android:icon="@android:drawable/ic_menu_delete"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/manual_sync"
         android:title="@string/sync_action"
         android:icon="@android:drawable/stat_notify_sync"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/clear_history"
-        android:title="Clear History"
-        android:showAsAction="never" />
+        android:title="@string/clear_action"
+        app:showAsAction="never" />
     <!--<item-->
         <!--android:id="@+id/action_settings"-->
         <!--android:title="@string/action_settings"-->

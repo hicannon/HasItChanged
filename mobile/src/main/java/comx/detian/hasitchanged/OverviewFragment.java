@@ -38,6 +38,10 @@ public class OverviewFragment extends Fragment {
     private HistoryAdapter historyAdapter;
     private BroadcastReceiver receiver;
 
+    public OverviewFragment() {
+        // Required empty public constructor
+    }
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -50,10 +54,6 @@ public class OverviewFragment extends Fragment {
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
-    }
-
-    public OverviewFragment() {
-        // Required empty public constructor
     }
 
     @Override
