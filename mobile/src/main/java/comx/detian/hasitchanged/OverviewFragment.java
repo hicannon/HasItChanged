@@ -13,6 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -28,6 +29,7 @@ public class OverviewFragment extends Fragment {
     private RecyclerView historyView;
     private HistoryAdapter historyAdapter;
     private BroadcastReceiver receiver;
+    private TextView emptyView;
 
     public OverviewFragment() {
         // Required empty public constructor
@@ -71,6 +73,16 @@ public class OverviewFragment extends Fragment {
         historyAdapter = new HistoryAdapter(getActivity(), getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         historyView.setAdapter(historyAdapter);
 
+        emptyView = (TextView) out.findViewById(R.id.history_empty);
+
+        if (historyAdapter.getItemCount()==0){
+            emptyView.setVisibility(View.VISIBLE);
+            historyView.setVisibility(View.GONE);
+        }else{
+            emptyView.setVisibility(View.GONE);
+            historyView.setVisibility(View.VISIBLE);
+        }
+
         out.findViewById(R.id.history_button_collapse).setOnClickListener(historyAdapter);
         out.findViewById(R.id.history_button_filter).setOnClickListener(historyAdapter);
         return out;
@@ -78,6 +90,13 @@ public class OverviewFragment extends Fragment {
 
     private void updateContent() {
         historyAdapter.addAllFromCurosr(getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
+        if (historyAdapter.getItemCount()==0){
+            emptyView.setVisibility(View.VISIBLE);
+            historyView.setVisibility(View.GONE);
+        }else{
+            emptyView.setVisibility(View.GONE);
+            historyView.setVisibility(View.VISIBLE);
+        }
         historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount() - 1));
         Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
     }
