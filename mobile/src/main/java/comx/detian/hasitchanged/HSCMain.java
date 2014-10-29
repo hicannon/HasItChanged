@@ -3,6 +3,8 @@ package comx.detian.hasitchanged;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.graphics.Typeface;
 import android.support.v7.app.ActionBar;
 import android.app.AlarmManager;
 import android.app.FragmentManager;
@@ -39,6 +41,15 @@ public class HSCMain extends ActionBarActivity
     private static Account mAccount = null;
     private static PendingIntent exactSyncIntent = null;
     private static PendingIntent inexactSyncIntent = null;
+
+    public static Typeface getRobotoRegular(Context activity) {
+        if (robotoRegular==null){
+            robotoRegular = Typeface.createFromAsset(activity.getAssets(), "Roboto-Regular.ttf");
+        }
+        return robotoRegular;
+    }
+
+    static Typeface robotoRegular;
 
     static {
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -301,10 +312,11 @@ public class HSCMain extends ActionBarActivity
         setContentView(R.layout.activity_hscmain);
 
         //Set up the actionbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
+        Toolbar actionBar = (Toolbar) findViewById(R.id.actionBar);
+        if (actionBar != null) {
+            setSupportActionBar(actionBar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setElevation(2);
         } else {
             throw new RuntimeException();
         }

@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> implements View.OnClickListener {
-    static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy - HH:mm:ss");
+    static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM - HH:mm:ss");
     boolean collapse = true;
 
     Cursor cursor;
@@ -198,6 +198,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         TextView title = (TextView) v.findViewById(R.id.history_title);
         TextView description = (TextView) v.findViewById(R.id.history_description);
 
+        title.setTypeface(HSCMain.getRobotoRegular(context));
+        status.setTypeface(HSCMain.getRobotoRegular(context));
+        description.setTypeface(HSCMain.getRobotoRegular(context));
         return new HistoryItemViewHolder(v, title, description, status, favicon);
     }
 
@@ -217,7 +220,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
             viewHolder.mIcon.setImageResource(android.R.drawable.ic_menu_report_image);
         }
         viewHolder.mTitle.setText(url);
-        viewHolder.mDescription.setText((count == 1 ? "" : count + "X from\n" + dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date(getKey(i))));
+        viewHolder.mDescription.setText((count == 1 ? "" : count + "x from " + dateFormat.format(new Date(firstTimeStamp)) + " to ") + dateFormat.format(new Date(getKey(i))));
 
         switch (Integer.parseInt(statusCode)) {
             case 200:

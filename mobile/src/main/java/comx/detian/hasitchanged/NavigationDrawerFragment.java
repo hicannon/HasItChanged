@@ -24,7 +24,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -158,9 +157,11 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     }
                     textView.setText(text);
                     switch (c.getInt(DatabaseOH.COLUMNS._id.ordinal())){
-                        case 0:textView.setTypeface(null, Typeface.BOLD); break;
-                        case Integer.MAX_VALUE: textView.setTypeface(null, Typeface.ITALIC); break;
-                        default: textView.setTypeface(null, Typeface.NORMAL); break;
+                        case 0:
+                            textView.setTextSize(20);
+                            textView.setTypeface(HSCMain.getRobotoRegular(getActivity()), Typeface.BOLD); break;
+                        case Integer.MAX_VALUE: textView.setTypeface(HSCMain.getRobotoRegular(getActivity()), Typeface.ITALIC); break;
+                        default: textView.setTypeface(HSCMain.getRobotoRegular(getActivity()), Typeface.NORMAL); break;
                     }
                     return true;
                 }
@@ -212,7 +213,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         mDrawerToggle = new ActionBarDrawerToggle(
                 getActivity(),                    /* host Activity */
                 mDrawerLayout,                    /* DrawerLayout object */
-                (Toolbar) getActivity().findViewById(R.id.toolbar),             /* nav drawer image to replace 'Up' caret */
+                (Toolbar) getActivity().findViewById(R.id.actionBar),             /* nav drawer image to replace 'Up' caret */
                 R.string.navigation_drawer_open,  /* "open drawer" description for accessibility */
                 R.string.navigation_drawer_close  /* "close drawer" description for accessibility */
         ) {

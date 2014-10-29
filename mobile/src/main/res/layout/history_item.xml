@@ -2,42 +2,18 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
-    android:padding="6dip">
+    android:layout_height="56dp"
+    android:padding="8dp">
 
     <ImageView
         android:id="@+id/history_icon"
-        android:layout_width="64px"
-        android:layout_height="64px"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="6dip"
-        android:contentDescription="TODO"
+        android:layout_width="50dp"
+        android:layout_height="32dp"
+        android:paddingRight="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:contentDescription="Favicon"
         android:src="@drawable/ic_launcher" />
-
-    <TextView
-        android:id="@+id/history_description"
-        android:layout_width="fill_parent"
-        android:layout_height="26dip"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/history_icon"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        android:text="Description"
-        android:textSize="12sp" />
-
-    <TextView
-        android:id="@+id/history_title"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/history_description"
-        android:layout_alignParentTop="true"
-        android:layout_alignWithParentIfMissing="true"
-        android:layout_toRightOf="@id/history_icon"
-        android:gravity="center_vertical"
-        android:text="Example application"
-        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/history_status"
@@ -45,11 +21,33 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="false"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="false"
         android:layout_gravity="center"
-        android:layout_marginRight="6dip"
         android:text="XXX"
-        android:textSize="20dp"
+        android:textSize="14sp"
         android:typeface="serif" />
+
+    <TextView
+        android:id="@+id/history_description"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@id/history_icon"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:text="Description"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/history_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_toRightOf="@id/history_icon"
+        android:layout_toLeftOf="@id/history_status"
+        android:maxLines="1"
+        android:ellipsize="middle"
+        android:text="Example application"
+        android:textSize="16sp" />
 
 </RelativeLayout>

@@ -7,30 +7,26 @@
     <LinearLayout
         android:id="@+id/history_buttons"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        style="?android:attr/buttonBarStyle"
         android:shrinkColumns="2">
 
         <Button
             android:id="@+id/history_button_collapse"
             android:layout_width="0px"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dip"
-            android:layout_marginTop="5dip"
             android:layout_weight=".50"
-            android:background="?android:attr/selectableItemBackground"
+            style="?android:attr/buttonBarButtonStyle"
             android:text="Collapse/Expand" />
 
         <Button
             android:id="@+id/history_button_filter"
             android:layout_width="0px"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dip"
-            android:layout_marginRight="5dip"
-            android:layout_marginTop="5dip"
             android:layout_weight=".50"
-            android:background="?android:attr/selectableItemBackground"
+            style="?android:attr/buttonBarButtonStyle"
             android:text="Reverse" />
     </LinearLayout>
 
