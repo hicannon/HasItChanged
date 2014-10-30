@@ -375,6 +375,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             createNewEntry(null);
             return true;
         } else if (item.getItemId() == R.id.delete_site) {
+            if (mCurrentId==0){
+                return true;
+            }
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             final SharedPreferences targetPref = getActivity().getSharedPreferences(HSCMain.PREFERENCE_PREFIX + mCurrentId, Context.MODE_MULTI_PROCESS);
             builder.setTitle("Delete this URL?").setMessage(targetPref.getString("pref_site_url", null) + " will be deleted.");
