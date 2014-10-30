@@ -144,15 +144,23 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
                     if (sitePreference.getBoolean("pref_site_use_smart_compare", false)) {
                         Document doc = Jsoup.parse(data);
-                        Element e = doc.body().select("#b_results, #ires, #content, .content, content, [ID*=content]").first();
-                        if (e == null) {
-                            e = doc.body();
+                        if (doc!=null){
+                            Element e = doc.body();
+
+                            if (e!=null){
+                                e = e.select("#b_results, #ires, #content, .content, content, [ID*=content]").first();
+                                if (e == null) {
+                                    e = doc.body();
+                                }
+                            }else{
+                                e = doc;
+                            }
+                            String temp = "";
+                            for (Element ele : e.getAllElements()) {
+                                temp += ele.ownText();
+                            }
+                            data = temp;
                         }
-                        String temp = "";
-                        for (Element ele : e.getAllElements()) {
-                            temp += ele.ownText();
-                        }
-                        data = temp;
                     }
 
                     int hashCode = data.hashCode();
@@ -328,6 +336,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(title)
                 .setContentText(content)
+                .setAutoCancel(true)
                 .setSmallIcon(R.drawable.ic_notify_change);
         if (sound != null && sound.length() > 0) {
             mBuilder.setSound(Uri.parse(sound));
