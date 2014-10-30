@@ -185,7 +185,7 @@ public class HSCMain extends ActionBarActivity
      *
      * @param context  the application context
      * @param idToSync 0 to force sync all, -1 to only sync those necessary; otherwise sync idToSync
-     * @param notify   whether to display a tost
+     * @param notify   whether to display a toast
      */
     static void requestSyncNow(final Context context, long idToSync, boolean notify) {
         final Bundle params = new Bundle();

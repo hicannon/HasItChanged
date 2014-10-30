@@ -98,7 +98,8 @@ public class OverviewFragment extends Fragment {
             historyView.setVisibility(View.VISIBLE);
         }
         historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount() - 1));
-        Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
+        if (isVisible())
+            Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
     }
 
     @Override
