@@ -268,7 +268,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_SEND)) {
             if (intent.getType() != null && intent.getType().equals("text/plain")) {
                 String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-                System.out.println(sharedText);
+                intent.setAction(null);
+                getActivity().setIntent(intent);
                 createNewEntry(sharedText);
                 return;
             }
