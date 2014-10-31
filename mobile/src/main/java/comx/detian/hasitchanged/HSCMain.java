@@ -271,8 +271,9 @@ public class HSCMain extends ActionBarActivity
         //TODO handle per url with independent alarms
         AlarmManager alarmMgr = (AlarmManager) context.getSystemService(ALARM_SERVICE);
 
+        //NOTE: Cancelling the alarm that has the same PendingIntent as the one that is about to be created seems to cancel that one too
+
         //PendingIntent syncIntent = PendingIntent.getBroadcast(context, 1, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
-        alarmMgr.cancel(getExactSyncIntent(context));
         long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
             if (android.os.Build.VERSION.SDK_INT >= 21) {
@@ -281,14 +282,17 @@ public class HSCMain extends ActionBarActivity
                 alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
             }
             Log.d("SYNC_STATUS", "Setting exact for " + nextExactAlarmTime + " millis\n");
+        }else{
+            alarmMgr.cancel(getExactSyncIntent(context));
         }
 
         //PendingIntent inexactSyncIntent = PendingIntent.getBroadcast(context, 2, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
-        alarmMgr.cancel(getInExactSyncIntent(context));
         long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true);
         if (nextInexactAlarmTime != Long.MAX_VALUE) {
             alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextInexactAlarmTime, getInExactSyncIntent(context));
             Log.d("SYNC_STATUS", "Setting inexact for " + nextExactAlarmTime + " millis\n");
+        }else{
+            alarmMgr.cancel(getInExactSyncIntent(context));
         }
 
         Log.d("SYNC_STATUS: ", (nextSyncTime == Long.MAX_VALUE ? "NEVER" : nextSyncTime * 1000) + " " + (nextExactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextExactAlarmTime) + " " + (nextInexactAlarmTime == Long.MAX_VALUE ? "NEVER" : nextInexactAlarmTime));
