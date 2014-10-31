@@ -14,7 +14,7 @@
         <item name="file">file</item>
     </string-array>
     <string-array name="syncMethods">
-        <item name="sync">Sync Adapter</item>
+        <item name="sync">Sync Adapter (Saves Battery)</item>
         <item name="alarm">Alarm</item>
     </string-array>
     <string-array name="syncMethodValues">

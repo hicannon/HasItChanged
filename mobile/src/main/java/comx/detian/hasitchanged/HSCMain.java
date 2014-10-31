@@ -238,7 +238,7 @@ public class HSCMain extends ActionBarActivity
                     && sp.getString("pref_site_sync_type", "").equals("elapsed_time")
                     && sp.getBoolean("pref_site_sync_allow_inexact", true) == inexact) {
                 if (sp.getString("pref_site_url", "").length() != 0
-                        && !sp.getString("pref_site_sync_time_elapsed", "never").equals("never")) {
+                        && !sp.getString("pref_site_sync_time_elapsed", "never").toLowerCase().contains("never")) {
                     targetTimes.add(sp.getString("pref_site_sync_time_elapsed", "never"));
                     //System.out.println(methodToCheck+ cursor.getString(DatabaseOH.COLUMNS.URL.ordinal()));
                     syncTimes.add(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()));
@@ -290,7 +290,7 @@ public class HSCMain extends ActionBarActivity
         long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true);
         if (nextInexactAlarmTime != Long.MAX_VALUE) {
             alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextInexactAlarmTime, getInExactSyncIntent(context));
-            Log.d("SYNC_STATUS", "Setting inexact for " + nextExactAlarmTime + " millis\n");
+            Log.d("SYNC_STATUS", "Setting inexact for " + nextInexactAlarmTime + " millis\n");
         }else{
             alarmMgr.cancel(getInExactSyncIntent(context));
         }
