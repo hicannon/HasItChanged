@@ -57,7 +57,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         //Normally the list will only grow, the only other case is clear all history
         int totalCount = 0;
 
+        //If we're actually changing to a different cursor, close the old one
+        if (this.cursor!=null && this.cursor!=cursor){
+            this.cursor.close();
+        }
+
         this.cursor = cursor;
+
+        if (cursor==null){
+            return;
+        }
+
         cursorStart = cursor.getPosition();
 
         //Skip first dummy

@@ -110,6 +110,7 @@ public class OverviewFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        historyAdapter.addAllFromCurosr(null);
         getActivity().unregisterReceiver(receiver);
     }
 }

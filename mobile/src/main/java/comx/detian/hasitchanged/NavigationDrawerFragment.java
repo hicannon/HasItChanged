@@ -182,9 +182,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         return mDrawerListView;
     }
 
-    private Cursor getSitesCursor() {
+    /*private Cursor getSitesCursor() {
         return getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null);
-    }
+    }*/
 
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mFragmentContainerView);
