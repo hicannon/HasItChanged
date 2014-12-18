@@ -75,7 +75,12 @@ public class SiteSettingsFragment extends PreferenceFragment implements SharedPr
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Log.d("SiteSettings: ", "PreferenceChange triggered");
         if (key.equals("pref_site_url")) {
-            findPreference(key).setSummary(sharedPreferences.getString(key, "EX: google.com"));
+            String targetUrl = sharedPreferences.getString(key, "EX: google.com");
+            if (targetUrl.contains("://")){
+                targetUrl = targetUrl.substring(targetUrl.indexOf("://")+3);
+                sharedPreferences.edit().putString("pref_site_url", targetUrl).apply();
+            }
+            findPreference(key).setSummary(targetUrl);
         } else if (key.equals("pref_site_protocol")) {
             findPreference(key).setSummary(sharedPreferences.getString(key, "EX: HTTP"));
         } else if (key.equals("pref_site_sync_method")) {
