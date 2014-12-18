@@ -278,7 +278,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         selectItem(mCurrentSelectedPosition, mCurrentId);
     }
 
-    private void selectItem(int position, long id) {
+    public void selectItem(int position, long id) {
         Log.d("NavigationDrawer: ", "select item " + position + " " + id);
         assert (mAdapter.getItemId(position) == id);
 
@@ -514,6 +514,10 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                 }
             });
         }
+    }
+
+    public long getCurrentFragmentId(){
+        return mCurrentId;
     }
 
     @Override

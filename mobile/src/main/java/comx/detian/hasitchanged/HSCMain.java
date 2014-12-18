@@ -338,6 +338,15 @@ public class HSCMain extends ActionBarActivity
     }
 
     @Override
+    public void onBackPressed(){
+        if (mNavigationDrawerFragment.getCurrentFragmentId()==0){
+            super.onBackPressed();
+        }else{
+            mNavigationDrawerFragment.selectItem(0, 0);
+        }
+    }
+
+    @Override
     public void onNavigationDrawerItemSelected(int position, long id) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
