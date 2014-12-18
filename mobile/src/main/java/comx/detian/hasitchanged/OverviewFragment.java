@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -25,11 +26,12 @@ import android.widget.Toast;
  * Use the {@link OverviewFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OverviewFragment extends Fragment {
+public class OverviewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener{
     private RecyclerView historyView;
     private HistoryAdapter historyAdapter;
     private BroadcastReceiver receiver;
     private TextView emptyView;
+    private SwipeRefreshLayout refreshContainer;
 
     public OverviewFragment() {
         // Required empty public constructor
@@ -67,6 +69,8 @@ public class OverviewFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View out = inflater.inflate(R.layout.fragment_overview, container, false);
+        refreshContainer = (SwipeRefreshLayout) out.findViewById(R.id.history_refresh);
+        refreshContainer.setOnRefreshListener(this);
         historyView = (RecyclerView) out.findViewById(R.id.history);
         historyView.setHasFixedSize(true);
         historyView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
@@ -98,8 +102,10 @@ public class OverviewFragment extends Fragment {
             historyView.setVisibility(View.VISIBLE);
         }
         historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount() - 1));
-        if (isResumed() && isVisible())
+        if (isResumed() && isVisible()) {
             Toast.makeText(getActivity(), "Refreshed", Toast.LENGTH_SHORT).show();
+            refreshContainer.setRefreshing(false);
+        }
     }
 
     @Override
@@ -112,5 +118,11 @@ public class OverviewFragment extends Fragment {
         super.onDetach();
         historyAdapter.addAllFromCurosr(null);
         getActivity().unregisterReceiver(receiver);
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshContainer.setRefreshing(true);
+        HSCMain.requestSyncNow(getActivity(), 0, true);
     }
 }
