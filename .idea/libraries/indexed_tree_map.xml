@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="indexed-tree-map">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/mobile/src/main/java/indexed-tree-map.jar!/" />
+      <root url="jar://$PROJECT_DIR$/mobile/src/main/java/libs/indexed-tree-map.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
