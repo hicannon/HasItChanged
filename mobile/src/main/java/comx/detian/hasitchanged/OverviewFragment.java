@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -81,10 +80,10 @@ public class OverviewFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         if (historyAdapter.getItemCount()==0){
             emptyView.setVisibility(View.VISIBLE);
-            historyView.setVisibility(View.GONE);
+            //historyView.setVisibility(View.GONE);
         }else{
             emptyView.setVisibility(View.GONE);
-            historyView.setVisibility(View.VISIBLE);
+            //historyView.setVisibility(View.VISIBLE);
         }
 
         out.findViewById(R.id.history_button_collapse).setOnClickListener(historyAdapter);
@@ -96,10 +95,10 @@ public class OverviewFragment extends Fragment implements SwipeRefreshLayout.OnR
         historyAdapter.addAllFromCurosr(getActivity().getContentResolver().query(DatabaseOH.getBaseURI(), null, null, null, null));
         if (historyAdapter.getItemCount()==0){
             emptyView.setVisibility(View.VISIBLE);
-            historyView.setVisibility(View.GONE);
+            //historyView.setVisibility(View.GONE);
         }else{
             emptyView.setVisibility(View.GONE);
-            historyView.setVisibility(View.VISIBLE);
+            //historyView.setVisibility(View.VISIBLE);
         }
         historyView.scrollToPosition(historyAdapter.mReverse(historyAdapter.getItemCount() - 1));
         if (isResumed() && isVisible()) {
