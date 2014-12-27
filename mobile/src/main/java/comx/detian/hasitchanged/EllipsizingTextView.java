@@ -96,6 +96,11 @@ public class EllipsizingTextView extends TextView {
         return isEllipsized;
     }
 
+    @Override
+    public CharSequence getText() {
+        return mFullText;
+    }
+
     /**
      * @return The maximum number of lines displayed in this {@link android.widget.TextView}.
      */
@@ -169,7 +174,7 @@ public class EllipsizingTextView extends TextView {
             ellipsized = !mEllipsizeStrategy.isInLayout(mFullText);
         }
 
-        if (!workingText.equals(getText())) {
+        if (!workingText.equals(super.getText())) {
             programmaticChange = true;
             try {
                 setText(workingText);
