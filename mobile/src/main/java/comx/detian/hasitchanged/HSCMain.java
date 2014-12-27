@@ -103,10 +103,6 @@ public class HSCMain extends ActionBarActivity
         }
         long minTimeToSync = Long.MAX_VALUE;
         for (int i = 0; i < targetTimes.size(); i++) {
-            if (syncTimes.get(i) == null) { //this entry has never been synced
-                minTimeToSync = 0;
-                break;
-            }
             long timeDifference = calcTimeDiff(syncTimes.get(i), targetTimes.get(i));
             if (timeDifference < minTimeToSync) {
                 minTimeToSync = timeDifference;
@@ -121,6 +117,15 @@ public class HSCMain extends ActionBarActivity
      * @return time in mills of how far in the in future the next sync should be
      */
     static long calcTimeDiff(String lastSyncTime, String targetT) {
+        if (targetT.toLowerCase().equals("never")){
+            Log.d("CalcFuture", "Item should not be synced");
+            return Long.MAX_VALUE;
+        }
+        if (lastSyncTime==null || lastSyncTime.toLowerCase().equals("never")){
+            Log.d("CalcFuture", "Item has never been synced");
+            return 0;
+        }
+
         long elapsedTime;
         //This regex splits on on number/character boundary
         String[] pieces = targetT.split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
@@ -174,7 +179,7 @@ public class HSCMain extends ActionBarActivity
 
         long timeDifference = targetTime - elapsedTime;
 
-        Log.d("CalcFuture", " Item has passed " + elapsedTime + " on its way to " + targetTime);
+        Log.d("CalcFuture", "Item has passed " + elapsedTime + " on its way to " + targetTime);
         Log.d("CalcFuture", "Item has " + timeDifference + " to go before sync");
 
         return timeDifference;
