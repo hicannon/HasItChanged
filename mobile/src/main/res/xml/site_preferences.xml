@@ -3,7 +3,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
         android:key="pref_site_url"
-        android:inputType="textNoSuggestions"
+        android:inputType="textUri"
         android:title="URL"
         android:summary="EX: google.com"
         android:defaultValue="" />
