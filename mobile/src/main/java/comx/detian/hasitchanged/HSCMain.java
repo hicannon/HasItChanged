@@ -42,15 +42,6 @@ public class HSCMain extends ActionBarActivity
     private static PendingIntent exactSyncIntent = null;
     private static PendingIntent inexactSyncIntent = null;
 
-    public static Typeface getRobotoRegular(Context activity) {
-        if (robotoRegular==null){
-            robotoRegular = Typeface.createFromAsset(activity.getAssets(), "Roboto-Regular.ttf");
-        }
-        return robotoRegular;
-    }
-
-    static Typeface robotoRegular;
-
     static {
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
     }

@@ -208,9 +208,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryItemViewHolder> 
         TextView title = (TextView) v.findViewById(R.id.history_title);
         TextView description = (TextView) v.findViewById(R.id.history_description);
 
-        title.setTypeface(HSCMain.getRobotoRegular(context));
-        status.setTypeface(HSCMain.getRobotoRegular(context));
-        description.setTypeface(HSCMain.getRobotoRegular(context));
         return new HistoryItemViewHolder(v, title, description, status, favicon);
     }
 

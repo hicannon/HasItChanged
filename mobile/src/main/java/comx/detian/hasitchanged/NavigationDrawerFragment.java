@@ -159,9 +159,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
                     switch (c.getInt(DatabaseOH.COLUMNS._id.ordinal())){
                         case 0:
                             textView.setTextSize(20);
-                            textView.setTypeface(HSCMain.getRobotoRegular(getActivity()), Typeface.BOLD); break;
-                        case Integer.MAX_VALUE: textView.setTypeface(HSCMain.getRobotoRegular(getActivity()), Typeface.ITALIC); break;
-                        default: textView.setTypeface(HSCMain.getRobotoRegular(getActivity()), Typeface.NORMAL); break;
+                            textView.setTypeface(Typeface.DEFAULT_BOLD); break;
+                        case Integer.MAX_VALUE: textView.setTypeface(Typeface.DEFAULT, Typeface.ITALIC); break;
+                        default: textView.setTypeface(Typeface.DEFAULT, Typeface.NORMAL); break;
                     }
                     return true;
                 }
