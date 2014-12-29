@@ -331,6 +331,8 @@ public class HSCMain extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        HSCMain.updateNextSyncTime(getApplicationContext());
     }
 
     @Override
