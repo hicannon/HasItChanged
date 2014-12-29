@@ -8,8 +8,8 @@ android {
         applicationId "comx.detian.hasitchanged"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 9
-        versionName "1.3.3"
+        versionCode 10
+        versionName "1.3.4"
     }
     buildTypes {
         release {
