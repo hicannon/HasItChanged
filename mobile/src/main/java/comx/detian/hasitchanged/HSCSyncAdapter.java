@@ -77,9 +77,6 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
             Cursor cursor = contentProviderClient.query(DatabaseOH.getBaseURI(), null, null, null, null);
 
-            //ArrayList<String> targetTimes = new ArrayList<String>();
-            //ArrayList<String> syncTimes = new ArrayList<String>();
-
             Log.d("SyncAdapter: onPerform", "Iterating....");
 
             //Skip first dummy
@@ -95,8 +92,14 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                     continue;
                 }
 
-                //Skip those items whose time to sync is more than a grace period of 1 min in the future
-                if (!forceSyncAll && !bundle.getBoolean("FORCE_SYNC_" + id) && HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never")) > 60000) {
+                long timeToSync = HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never"));
+                if (timeToSync<=0){
+                    //We should check this site because time has elapsed
+                }else if (timeToSync<60000 && sitePreference.getString("pref_site_sync_method", "sync").equals("sync")){
+                    //Allow those using the sync method to check with grace period of 1 min
+                }else if (forceSyncAll || bundle.getBoolean("FORCE_SYNC_" + id)){
+                    //Forced check
+                }else{
                     continue;
                 }
 
@@ -129,7 +132,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 String historyRaw = cursor.getString(DatabaseOH.COLUMNS.HISTORY.ordinal());
                 if (historyRaw == null || historyRaw.length() == 0) {
-                    history = new LinkedHashMap<Long, String>();
+                    history = new LinkedHashMap<>();
                 } else {
                     history = gson.fromJson(historyRaw, DatabaseOH.historyType);
                 }
@@ -189,7 +192,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                         //Always notify
                         createNotification(context, url, "Is Down!.", cursor.getBlob(DatabaseOH.COLUMNS.FAVICON.ordinal()), sitePreference.getString("pref_site_notification_sound", ""), sitePreference.getBoolean("pref_site_separate_notification", false), (int) id);
                     } else {
-                        List<Long> keyList = new ArrayList<Long>(history.keySet());
+                        List<Long> keyList = new ArrayList<>(history.keySet());
                         ListIterator<Long> iterator = keyList.listIterator(keyList.size());
                         while (iterator.hasPrevious()) {
                             if (history.get(iterator.previous()).charAt(0) == 'O') {
@@ -284,9 +287,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
             // finished using it.
         } catch (MalformedURLException e) {
             out.responseCode = SiteResponse.MALFORMEDURL;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
+        } catch (UnsupportedEncodingException | ProtocolException e) {
             e.printStackTrace();
         } catch (IOException e) {
             out.responseCode = SiteResponse.IOEXCEPTION;
