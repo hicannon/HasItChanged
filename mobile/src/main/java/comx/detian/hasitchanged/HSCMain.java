@@ -272,6 +272,8 @@ public class HSCMain extends ActionBarActivity
         //PendingIntent syncIntent = PendingIntent.getBroadcast(context, 1, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
         long nextExactAlarmTime = getNextSyncTime(context, "alarm", false);
         if (nextExactAlarmTime != Long.MAX_VALUE) {
+            //Don't allow alarms to be less than 1 second
+            nextExactAlarmTime = nextExactAlarmTime < 1000 ? 2000 : nextExactAlarmTime;
             if (android.os.Build.VERSION.SDK_INT >= 21) {
                 alarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextExactAlarmTime, getExactSyncIntent(context));
             } else {
@@ -285,6 +287,8 @@ public class HSCMain extends ActionBarActivity
         //PendingIntent inexactSyncIntent = PendingIntent.getBroadcast(context, 2, getSyncIntent(context), PendingIntent.FLAG_NO_CREATE);
         long nextInexactAlarmTime = getNextSyncTime(context, "alarm", true);
         if (nextInexactAlarmTime != Long.MAX_VALUE) {
+            //Don't allow alarms to be less than 1 second
+            nextInexactAlarmTime = nextInexactAlarmTime < 1000 ? 2000 : nextInexactAlarmTime;
             alarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + nextInexactAlarmTime, getInExactSyncIntent(context));
             Log.d("SYNC_STATUS", "Setting inexact for " + nextInexactAlarmTime + " millis\n");
         }else{
