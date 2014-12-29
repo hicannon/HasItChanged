@@ -96,7 +96,7 @@ public class HSCSyncAdapter extends AbstractThreadedSyncAdapter {
                 }
 
                 //Skip those items whose time to sync is more than a grace period of 1 min in the future
-                if (!forceSyncAll && !bundle.getBoolean("FORCE_SYNC_" + id) && HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never")) > 60) {
+                if (!forceSyncAll && !bundle.getBoolean("FORCE_SYNC_" + id) && HSCMain.calcTimeDiff(cursor.getString(DatabaseOH.COLUMNS.LUDATE.ordinal()), sitePreference.getString("pref_site_sync_time_elapsed", "never")) > 60000) {
                     continue;
                 }
 
